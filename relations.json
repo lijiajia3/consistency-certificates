@@ -1,0 +1,548 @@
+{
+ "P131": {
+  "freq": 3846,
+  "signatures": [
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P17": {
+  "freq": 2739,
+  "signatures": [
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "MISC"
+   ],
+   [
+    "TIME",
+    "LOC"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "MISC",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P27": {
+  "freq": 823,
+  "signatures": [
+   [
+    "PER",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "PER",
+    "MISC"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P150": {
+  "freq": 662,
+  "signatures": [
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "LOC",
+    "PER"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P800": {
+  "freq": 604,
+  "signatures": [
+   [
+    "PER",
+    "ORG"
+   ],
+   [
+    "PER",
+    "NUM"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "ORG",
+    "MISC"
+   ],
+   [
+    "PER",
+    "MISC"
+   ],
+   [
+    "PER",
+    "PER"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "PER",
+    "TIME"
+   ]
+  ]
+ },
+ "P527": {
+  "freq": 469,
+  "signatures": [
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "TIME",
+    "TIME"
+   ],
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "ORG",
+    "MISC"
+   ],
+   [
+    "ORG",
+    "PER"
+   ],
+   [
+    "MISC",
+    "PER"
+   ],
+   [
+    "PER",
+    "PER"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "MISC",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P361": {
+  "freq": 444,
+  "signatures": [
+   [
+    "PER",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "TIME",
+    "TIME"
+   ],
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "MISC"
+   ],
+   [
+    "PER",
+    "MISC"
+   ],
+   [
+    "PER",
+    "PER"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "MISC",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P175": {
+  "freq": 330,
+  "signatures": [
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "MISC",
+    "PER"
+   ],
+   [
+    "PER",
+    "PER"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "MISC",
+    "ORG"
+   ]
+  ]
+ },
+ "P577": {
+  "freq": 295,
+  "signatures": [
+   [
+    "ORG",
+    "TIME"
+   ],
+   [
+    "MISC",
+    "TIME"
+   ],
+   [
+    "PER",
+    "TIME"
+   ]
+  ]
+ },
+ "P1344": {
+  "freq": 281,
+  "signatures": [
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "ORG",
+    "MISC"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "PER",
+    "MISC"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P710": {
+  "freq": 281,
+  "signatures": [
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "LOC",
+    "PER"
+   ],
+   [
+    "MISC",
+    "PER"
+   ],
+   [
+    "MISC",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P463": {
+  "freq": 268,
+  "signatures": [
+   [
+    "PER",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "MISC"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "LOC",
+    "ORG"
+   ],
+   [
+    "PER",
+    "MISC"
+   ],
+   [
+    "PER",
+    "PER"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P1001": {
+  "freq": 247,
+  "signatures": [
+   [
+    "PER",
+    "ORG"
+   ],
+   [
+    "ORG",
+    "LOC"
+   ],
+   [
+    "MISC",
+    "LOC"
+   ],
+   [
+    "PER",
+    "LOC"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "LOC",
+    "LOC"
+   ]
+  ]
+ },
+ "P495": {
+  "freq": 205,
+  "signatures": [
+   [
+    "MISC",
+    "LOC"
+   ]
+  ]
+ },
+ "P569": {
+  "freq": 193,
+  "signatures": [
+   [
+    "MISC",
+    "TIME"
+   ],
+   [
+    "LOC",
+    "TIME"
+   ],
+   [
+    "PER",
+    "TIME"
+   ]
+  ]
+ },
+ "P161": {
+  "freq": 190,
+  "signatures": [
+   [
+    "MISC",
+    "PER"
+   ],
+   [
+    "PER",
+    "PER"
+   ]
+  ]
+ },
+ "P571": {
+  "freq": 186,
+  "signatures": [
+   [
+    "ORG",
+    "TIME"
+   ],
+   [
+    "MISC",
+    "TIME"
+   ],
+   [
+    "LOC",
+    "TIME"
+   ]
+  ]
+ },
+ "P264": {
+  "freq": 183,
+  "signatures": [
+   [
+    "PER",
+    "ORG"
+   ],
+   [
+    "MISC",
+    "MISC"
+   ],
+   [
+    "PER",
+    "MISC"
+   ],
+   [
+    "ORG",
+    "ORG"
+   ],
+   [
+    "MISC",
+    "ORG"
+   ]
+  ]
+ }
+}

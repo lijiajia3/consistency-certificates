@@ -1,0 +1,1 @@
+{"entities": [{"name": "Arthur Ernest Percival", "type": "PER"}, {"name": "Lieutenant part part part ."}, {"name": "British Army"}, "typetype ", "PER", "ORG", "MISC", "LOC", "TIME"], "MISC": "TIME", "ORG": "LOC", "PER": 1, "TIME": "MISC", "_finish": "stop", "_model": "Qwen/Qwen2.5-7B-Instruct", "_idx": 246}

@@ -1,0 +1,48 @@
+model=Qwen/Qwen2.5-32B-Instruct  docs=15
+
+doc 0 Willi Schneider (skeleton race 实体24 违反 4(可核 3/sound 2) 下界=4 真错=5(类型0+伪关系5) ✓
+      · 2002 winter olympics(MISC/MISC) -located in the administrative territorial entity- salt lake city(LOC/LOC) [类型错=False 伪关系=True sound=True]
+      · 2006 winter olympics(MISC/MISC) -located in the administrative territorial entity- turin(LOC/LOC) [类型错=False 伪关系=True sound=True]
+doc 1 Ross Alger                     实体 0 违反 0(可核 0/sound 0) 下界=0 真错=0(类型0+伪关系0) ✓
+doc 2 Mess of Blues (Jeff Healey alb 实体14 违反 5(可核 5/sound 5) 下界=1 真错=7(类型2+伪关系5) ✓
+      · mess of blues(MISC/MISC) -record label- norm barker(PER/PER) [类型错=False 伪关系=True sound=True]
+      · mess of blues(MISC/MISC) -record label- richard uglow(PER/PER) [类型错=False 伪关系=True sound=True]
+doc 3 Ramey Idriss                   实体15 违反 5(可核 5/sound 5) 下界=2 真错=7(类型0+伪关系7) ✓
+      · ramey idriss(PER/PER) -participant in- ascap(ORG/ORG) [类型错=False 伪关系=True sound=True]
+      · the woody woodpecker song(MISC/MISC) -notable work- ramey idriss(PER/PER) [类型错=False 伪关系=True sound=True]
+doc 4 ELAM (Latin American School of 实体19 违反 8(可核 8/sound 8) 下界=1 真错=11(类型0+伪关系11) ✓
+      · escuela latinoamericana de medicina(ORG/ORG) -country of origin- cuba(LOC/LOC) [类型错=False 伪关系=True sound=True]
+      · escuela latinoamericana de medicina(ORG/ORG) -country of citizenship- cuba(LOC/LOC) [类型错=False 伪关系=True sound=True]
+doc 5 Song of Freedom                实体14 违反 3(可核 3/sound 3) 下界=2 真错=6(类型2+伪关系4) ✓
+      · song of freedom(MISC/MISC) -country of origin- british(MISC/LOC) [类型错=True 伪关系=False sound=True]
+      · zinga(PER/PER) -participant- song of freedom(MISC/MISC) [类型错=False 伪关系=True sound=True]
+doc 6 Soccer Academy                 实体 9 违反 4(可核 3/sound 3) 下界=1 真错=7(类型0+伪关系7) ✓
+      · the soccer academy(MISC/MISC) -located in the administrative territorial entity- united states(LOC/None) [类型错=False 伪关系=True sound=True]
+      · the soccer academy(MISC/MISC) -located in the administrative territorial entity- africa(LOC/LOC) [类型错=False 伪关系=True sound=True]
+doc 7 ROKETSAN                       实体17 违反 4(可核 3/sound 3) 下界=1 真错=12(类型0+伪关系12) ✓
+      · roketsan(ORG/ORG) -country of origin- turkey(LOC/LOC) [类型错=False 伪关系=True sound=True]
+      · roketsan(ORG/ORG) -participant- defense industry executive committee ssi k(ORG/None) [类型错=False 伪关系=True sound=True]
+doc 8 The Sacramento Bee             实体17 违反 7(可核 6/sound 6) 下界=1 真错=14(类型4+伪关系10) ✓
+      · the sacramento bee(ORG/MISC) -has part- upper sacramento valley(LOC/None) [类型错=True 伪关系=True sound=True]
+      · the sacramento bee(ORG/MISC) -has part- stockton(LOC/LOC) [类型错=True 伪关系=True sound=True]
+doc 9 Cambodia–Vietnam Friendship Mo 实体10 违反 9(可核 9/sound 9) 下界=2 真错=8(类型2+伪关系6) ✓
+      · cambodia vietnam friendship monument(MISC/LOC) -located in the administrative territorial entity- phnom penh(LOC/LOC) [类型错=True 伪关系=False sound=True]
+      · cambodia vietnam friendship monument(MISC/LOC) -located in the administrative territorial entity- botum park(LOC/LOC) [类型错=True 伪关系=False sound=True]
+doc10 Paul Desmarais Jr.             实体24 违反14(可核11/sound11) 下界=2 真错=13(类型1+伪关系12) ✓
+      · paul desmarais jr(PER/PER) -located in the administrative territorial entity- montreal(LOC/LOC) [类型错=False 伪关系=True sound=True]
+      · paul desmarais jr(PER/PER) -participant in- power corporation of canada(ORG/ORG) [类型错=False 伪关系=True sound=True]
+doc11 Mola di Bari                   实体11 违反 0(可核 0/sound 0) 下界=0 真错=5(类型0+伪关系5) ✓
+doc12 Westmere, New York             实体10 违反 0(可核 0/sound 0) 下界=0 真错=4(类型2+伪关系2) ✓
+doc13 Edward Rowan Finnegan          实体23 违反11(可核10/sound10) 下界=2 真错=14(类型1+伪关系13) ✓
+      · u s representative(MISC/None) -located in the administrative territorial entity- illinois(LOC/LOC) [类型错=False 伪关系=True sound=True]
+      · edward rowan finnegan(PER/PER) -located in the administrative territorial entity- chicago(LOC/LOC) [类型错=False 伪关系=True sound=True]
+doc14 Foix (river)                   实体14 违反 3(可核 2/sound 2) 下界=2 真错=4(类型1+伪关系3) ✓
+      · foix(MISC/LOC) -located in the administrative territorial entity- catalonia(LOC/LOC) [类型错=True 伪关系=False sound=True]
+      · foix(MISC/LOC) -located in the administrative territorial entity- province of barcelona(LOC/None) [类型错=True 伪关系=True sound=True]
+
+===== 汇总 (Qwen2.5-32B, 15 篇) =====
+① 触发率: 12/15 篇触发证书
+② 经验 soundness(可核验违反): 67/68 = 99%
+③ 定理: 下界合计 21 ≤ 真错合计 117 (类型15+伪关系102) : ✓ 成立;非平凡=下界21>0=True
+
+GO/NO-GO ⇒ 触发率12/15, soundness 99%, 下界非平凡=True, 定理成立=True

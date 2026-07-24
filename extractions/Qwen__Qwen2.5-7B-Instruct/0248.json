@@ -1,0 +1,1 @@
+{"entities": [{"name": "Piton de Neiges", "type": "LOC"}, {"name": "Réunion", " .": "LOC"}, {" .": "ORG"}], " .": "LOC", "_finish": "stop", "_model": "Qwen/Qwen2.5-7B-Instruct", "_idx": 248}

@@ -1,0 +1,1 @@
+{"entities": [{"name": "Paul Bel", "type": "PER"}, {"name": "Alexandra Collen"}, " .type ", "PER"], "relations": [{" . ": " . Bel"}, "ORG"], " . ": " . The Brussels Journal", "  .  ": " . The Brussels Journal", "_finish": "stop", "_model": "Qwen/Qwen2.5-7B-Instruct", "_idx": 85}

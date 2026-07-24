@@ -1,0 +1,1 @@
+{"entities": [{"{": "PER", "ORG": "LOC"}, "relations", "relations ", "ORG", "LOC"], "relations": ["located in the territorial entity", "The Cambodia", "located in the territorial entity", "located in the territorial entity"], "_finish": "stop", "_model": "Qwen/Qwen2.5-7B-Instruct", "_idx": 9}
