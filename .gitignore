@@ -9,6 +9,4 @@ venv/
 # (main.tex, main.pdf, author photos, cover letter, LaTeX sources and build files).
 paper/
 
-# Figure-drawing and paper-building scripts are kept local, not released.
-make_figures.py
-make_figures_pub.py
+# Figure-drawing and paper-building scripts are now part of code/ and released.
