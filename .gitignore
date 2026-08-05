@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+result/reproduction/
 
 # The manuscript itself is kept local, not part of the released code repository
 # (main.tex, main.pdf, author photos, cover letter, LaTeX sources and build files).

@@ -1,25 +1,32 @@
 # -*- coding: utf-8 -*-
 """Publication figures F1-F11 for the paper (exported as svg+pdf+png)."""
 import json, os
+from collections import Counter
 import numpy as np
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 from common import (find_violations, find_functional_violations, disjoint_lower_bound,
-                    validate_against_gold, gold_maps, TYPES, norm, NAME2PID, fuzzy_gtype, ROOT)
+                    validate_against_gold, gold_maps, TYPES, norm, NAME2PID, REL_NAME,
+                    fuzzy_gtype, ROOT)
 import certificate as CC
 
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Arial", "DejaVu Sans", "Liberation Sans"],
-    "svg.fonttype": "none", "pdf.fonttype": 42, "font.size": 9,
-    "axes.spines.top": False, "axes.spines.right": False, "axes.linewidth": 0.9,
-    "legend.frameon": False, "figure.dpi": 150, "axes.titlesize": 10, "axes.titleweight": "bold",
+    "svg.fonttype": "none", "pdf.fonttype": 42, "font.size": 7,
+    "axes.spines.top": False, "axes.spines.right": False, "axes.linewidth": 0.6,
+    "axes.labelsize": 7, "axes.labelpad": 3, "xtick.labelsize": 6.5,
+    "ytick.labelsize": 6.5, "xtick.major.size": 2.5, "ytick.major.size": 2.5,
+    "xtick.major.width": 0.6, "ytick.major.width": 0.6, "xtick.direction": "out",
+    "ytick.direction": "out", "legend.frameon": False, "legend.fontsize": 6.3,
+    "figure.dpi": 150, "lines.linewidth": 1.2, "lines.markersize": 4.2,
 })
-# Shared semantic color scheme across all figures.
-C = dict(valid="#C9CCD4", fire="#0F4D92", sound="#3AA35A", error="#B64342",
-         cover="#C99A2E", n="#8A8D93", sig="#0F4D92", defi="#42949E", func="#9A4D8E",
-         soft="#DCE6F2", red_s="#EFCFCB")
+# Restrained, colour-blind-safe palette.  Blue denotes the certificate throughout;
+# vermillion denotes missed/error mass; grey provides context rather than emphasis.
+C = dict(valid="#A7A9AC", fire="#0072B2", sound="#009E73", error="#D55E00",
+         cover="#E69F00", n="#7A7A7A", sig="#0072B2", defi="#56B4E9", func="#CC79A7",
+         soft="#DCEAF3", red_s="#F6E5DC", pale="#ECECEC", ink="#222222")
 FIG = os.path.join(ROOT, "result", "figs"); os.makedirs(FIG, exist_ok=True)
 DOCS = json.load(open(os.path.join(ROOT, "data", "redocred_dev_300.json")))
 SIGS = json.load(open(os.path.join(ROOT, "data", "relations.json")))
@@ -34,6 +41,19 @@ def save(fig, name):
     for ext in ("svg", "pdf", "png"):
         fig.savefig(f"{FIG}/{name}.{ext}", bbox_inches="tight", dpi=(600 if ext == "png" else None))
     plt.close(fig)
+
+
+def clean(ax, *, left=True, bottom=True):
+    """Nature-like axes: thin rules, no chart furniture, no in-panel headline."""
+    ax.spines["left"].set_visible(left)
+    ax.spines["bottom"].set_visible(bottom)
+    ax.tick_params(pad=2)
+    ax.grid(False)
+
+
+def panel_label(ax, letter):
+    ax.text(-0.13, 1.06, letter, transform=ax.transAxes, fontsize=8, fontweight="bold",
+            ha="left", va="top", clip_on=False)
 
 
 def load(m, i):
@@ -69,7 +89,7 @@ print("common docs (4 valid) =", len(COMMON))
 def collect():
     D = {m: dict(valid=0, n=0, fire=0, viol=0, sound=0, det=0, dett=0, rels=0,
                  d_fire=0, d_viol=0, f_fire=0, f_viol=0, sig_v=0, def_v=0, fun_v=0,
-                 match=0, cover=0, true=0, per_b=[], per_e=[]) for m in MODELS}
+                 match=0, cover=0, true=0, per_b=[], per_e=[], per_pid=Counter()) for m in MODELS}
     for m in MODELS:
         R = D[m]
         idxs = COMMON if m in VALID else list(range(len(DOCS)))
@@ -86,6 +106,10 @@ def collect():
             vs, et = find_violations(ext, SIGS, "empirical"); vs, _ = validate_against_gold(vs, et, DOCS[i])
             b = disjoint_lower_bound([v["he"] for v in vs]); R["fire"] += (b > 0)
             chk = [v for v in vs if v["checkable"]]; R["viol"] += len(chk); R["sound"] += sum(1 for v in chk if v["sound"]); R["sig_v"] += len(chk)
+            # Per-relation concentration is a gold-free descriptive count, so it
+            # includes every empirical signature violation, not only the subset
+            # whose endpoints align to gold for the soundness evaluation.
+            R["per_pid"].update(v["pid"] for v in vs)
             ti = true_items(ext, DOCS[i]); inv = set()
             for v in vs:
                 inv |= {f"E:{v['h']}", f"E:{v['t']}", f"R:{v['h']}|{v['pid']}|{v['t']}"}
@@ -107,6 +131,8 @@ D = collect()
 p = lambda a, b: a / b if b else 0
 
 # F1: concept illustration (multi-panel)
+r"""Legacy Matplotlib implementation retained for provenance.  The IEEE-style
+SVG generator invoked below is the canonical publication version.
 from matplotlib.patches import Circle, Rectangle, Polygon
 _INK = "#1D1D1F"; _BLUE = "#2F6DB5"; _DKBLUE = "#1F4E82"; _RED = "#C0403A"
 _GREEN = "#2E8B57"; _DKGREEN = "#1F6B41"; _TEAL = "#3E8E9A"; _GREY = "#8A8D93"
@@ -242,6 +268,17 @@ _outbox(85.5, 12.6, 24, 3.5, "no gold labels, no training")
 _outbox(85.5, 8.2, 24, 3.5, "one deterministic decode")
 _outbox(85.5, 3.8, 24, 3.5, "a provable floor, not an estimate")
 save(fig, "F1_concept")
+"""
+from make_figure1_svg import write_assets as write_figure1_assets
+if not all(os.path.exists(os.path.join(FIG, f"F1_concept.{ext}")) for ext in ("svg", "pdf", "png")):
+    write_figure1_assets(FIG)
+
+# The statistical figures use a separate Nature-style visual layer.  Exit after
+# generating them; the legacy code below remains only as a provenance snapshot.
+from make_figures_nature import generate as generate_nature_figures
+generate_nature_figures(globals())
+print("done:", sorted(f for f in os.listdir(FIG) if f.startswith("F") and f.endswith(".png")))
+raise SystemExit(0)
 
 # F2: model-capability gradient
 fig, ax = plt.subplots(figsize=(7.0, 3.3)); x = np.arange(len(MODELS)); w = 0.26
@@ -324,7 +361,7 @@ ax.bar(x - w, rs, w, label="Relation-signature", color=C["sig"])
 ax.bar(x, de, w, label="Definitional", color=C["defi"])
 ax.bar(x + w, fu, w, label="Functional", color=C["func"])
 ax.set_xticks(x); ax.set_xticklabels(VLAB); ax.set_ylabel("Firing rate (%)"); ax.set_ylim(0, max(rs) * 1.25)
-ax.set_title("Three constraint families, all 100% sound", loc="left")
+ax.set_title("Complementary firing across constraint families", loc="left")
 ax.legend(fontsize=8, ncol=3, loc="upper left")
 save(fig, "F5_families")
 
@@ -394,17 +431,16 @@ if len(bs) > 5:
     a2.set_title("(b)  Triage curve", loc="left", fontsize=9.5); a2.legend(fontsize=7.5, loc="lower right")
     save(fig, "F9_triage")
 
-# F10: bound tightness (matching <= vertex-cover <= true errors)
-fig, ax = plt.subplots(figsize=(6.2, 3.3)); x = np.arange(len(VALID)); w = 0.26
-mm = [D[m]["match"] for m in VALID]; vc = [D[m]["cover"] for m in VALID]; tr = [D[m]["true"] for m in VALID]
-ax.bar(x - w, mm, w, label="Matching bound", color=C["fire"])
-ax.bar(x, vc, w, label="Vertex-cover bound (tighter)", color=C["cover"])
-ax.bar(x + w, tr, w, label="True errors", color=C["error"])
+# F10: certificate lower bound versus gold-measured errors
+fig, ax = plt.subplots(figsize=(6.2, 3.3)); x = np.arange(len(VALID)); w = 0.34
+cb = [sum(D[m]["per_b"]) for m in VALID]; tr = [D[m]["true"] for m in VALID]
+ax.bar(x - w / 2, cb, w, label="Certified lower bound", color=C["fire"])
+ax.bar(x + w / 2, tr, w, label="Gold-measured errors", color=C["error"])
 for i in range(len(VALID)):
-    ax.text(i + w, tr[i] + max(tr) * 0.01, f"{p(vc[i], tr[i]):.0%}\nfloor", ha="center", va="bottom", fontsize=6.5, color=C["n"])
+    ax.text(i + w / 2, tr[i] + max(tr) * 0.01, f"{p(cb[i], tr[i]):.0%}\nfloor", ha="center", va="bottom", fontsize=6.5, color=C["n"])
 ax.set_xticks(x); ax.set_xticklabels(VLAB); ax.set_ylabel("Total count (all docs)")
 ax.set_ylim(0, max(tr) * 1.18)
-ax.set_title("Bound tightness: matching ≤ vertex-cover ≤ true errors", loc="left")
+ax.set_title("Certified floor versus gold-measured errors", loc="left")
 ax.legend(fontsize=7.5, loc="upper left")
 save(fig, "F10_tightness")
 

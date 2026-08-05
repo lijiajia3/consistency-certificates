@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Main results table: valid-JSON rate, firing rate, soundness (empirical/definitional),
-certificate bound, theorem check, and detectable class per model."""
-import json, os, sys
+"""Reproduce the paper's main results on the declared 297-document common set.
+
+Valid-output rates use all 300 documents. Certificate metrics for the four usable
+extractors use only documents on which all four returned valid output, exactly as
+reported in the manuscript.
+"""
+import json, os
 from common import (find_violations, disjoint_lower_bound, validate_against_gold, gold_maps,
                     TYPES, norm, NAME2PID, fuzzy_gtype, ROOT)
 
 MODELS = ["Qwen/Qwen2.5-7B-Instruct", "Qwen/Qwen2.5-14B-Instruct", "Qwen/Qwen2.5-32B-Instruct",
           "Qwen/Qwen2.5-72B-Instruct", "deepseek-ai/DeepSeek-V3"]
+USABLE_MODELS = MODELS[1:]
 DOCS = json.load(open(os.path.join(ROOT, "data", "redocred_dev_300.json")))
 SIGS = json.load(open(os.path.join(ROOT, "data", "relations.json")))
 
@@ -24,6 +29,27 @@ def load(m, i):
         return None
 
 
+def valid_output(ext):
+    """Whether a cache entry contains a usable structured extraction."""
+    if ext is None or ext.get("_error"):
+        return False
+    entities = [
+        entity
+        for entity in ext.get("entities", [])
+        if isinstance(entity, dict)
+        and entity.get("type") in TYPES
+        and entity.get("name")
+    ]
+    return bool(entities or ext.get("relations"))
+
+
+COMMON = [
+    index
+    for index in range(len(DOCS))
+    if all(valid_output(load(model, index)) for model in USABLE_MODELS)
+]
+
+
 def true_errors(ext, d):
     """Upper-bound true error count (for the theorem check): type errors + spurious relations."""
     gtype, grel = gold_maps(d)
@@ -36,17 +62,15 @@ def true_errors(ext, d):
     return tterr, rerr, etype, grel, gtype, llm_rels
 
 
-def analyze_model(m, constraint):
+def analyze_model(m, constraint, document_indices):
     rows = dict(valid=0, n=0, ents=0, viol=0, chk=0, sound=0, bound=0, terr=0, tterr=0, rerr=0,
                 fired=0, thm_ok=0, thm_n=0, catchable=0, true_items=0)
-    for i in range(len(DOCS)):
+    for i in document_indices:
         ext = load(m, i)
         rows["n"] += 1
-        if ext is None or ext.get("_error"):
+        if not valid_output(ext):
             continue
         ents = [e for e in ext.get("entities", []) if isinstance(e, dict) and e.get("type") in TYPES and e.get("name")]
-        if not ents and not ext.get("relations"):
-            continue
         rows["valid"] += 1
         rows["ents"] += len(ents)
         viols, etype = find_violations(ext, SIGS, constraint)
@@ -75,17 +99,35 @@ def pct(a, b): return f"{a/b:.0%}" if b else "-"
 
 
 def main():
+    print(f"common evaluation set = {len(COMMON)} documents")
+    if len(COMMON) != 297:
+        raise SystemExit(f"Expected the reported 297-document common set, found {len(COMMON)}")
+    summaries = {}
     for constraint in ["empirical", "definitional"]:
         print(f"\n{'='*96}\nconstraint family = {constraint}\n{'='*96}")
         print(f"{'model':26} {'validJSON':>9} {'ents/doc':>8} {'firing':>7} {'soundness':>10} "
               f"{'bound_sum':>9} {'true_err':>8} {'theorem':>7} {'detectable':>9}")
         for m in MODELS:
-            r = analyze_model(m, constraint)
+            full_valid = sum(valid_output(load(m, i)) for i in range(len(DOCS)))
+            indices = COMMON if m in USABLE_MODELS else range(len(DOCS))
+            r = analyze_model(m, constraint, indices)
+            summaries[(constraint, m)] = r
             name = m.split("/")[-1]
-            print(f"{name:26} {pct(r['valid'], r['n']):>9} {r['ents']/max(r['valid'],1):>8.1f} "
+            print(f"{name:26} {pct(full_valid, len(DOCS)):>9} {r['ents']/max(r['valid'],1):>8.1f} "
                   f"{pct(r['fired'], r['valid']):>7} {r['sound']}/{r['chk']}={pct(r['sound'], r['chk']):>4} "
                   f"{r['bound']:>9} {r['terr']:>8} {pct(r['thm_ok'], r['thm_n']):>7} "
                   f"{pct(r['catchable'], r['true_items']):>9}")
+
+    empirical = sum(summaries[("empirical", model)]["chk"] for model in USABLE_MODELS)
+    definitional = sum(summaries[("definitional", model)]["chk"] for model in USABLE_MODELS)
+    empirical_sound = sum(summaries[("empirical", model)]["sound"] for model in USABLE_MODELS)
+    definitional_sound = sum(summaries[("definitional", model)]["sound"] for model in USABLE_MODELS)
+    total = empirical + definitional
+    total_sound = empirical_sound + definitional_sound
+    print("\nreported common-set audit")
+    print(f"  empirical:    {empirical_sound}/{empirical}")
+    print(f"  definitional: {definitional_sound}/{definitional}")
+    print(f"  combined:     {total_sound}/{total} = {pct(total_sound, total)}")
 
 
 if __name__ == "__main__":
