@@ -58,14 +58,14 @@ def generate(g):
             markeredgecolor="white", markeredgewidth=.5)
     ax.plot(x[1:], np.asarray(firing)[1:], "o-", color=C["fire"],
             label="Certificate firing")
-    ax.plot(x[1:], np.asarray(sound)[1:], "^-", color=C["sound"], label="Soundness")
+    ax.plot(x[1:], np.asarray(sound)[1:], "^-", color=C["sound"], label="Observed soundness")
     ax.axvspan(-.35, .35, color=C["red_s"], zorder=-1)
     ax.text(0, 34, "structural\ncollapse", ha="center", va="center",
             fontsize=6.5, color=C["error"])
     ax.text(0, valid_rate[0] + 5, f"{valid_rate[0]:.0f}%", ha="center",
             color=C["valid"], fontsize=6.2)
     for i in range(1, len(MODELS)):
-        ax.text(i, sound[i] + 3.2, "100%", ha="center", color=C["sound"], fontsize=6.2)
+        ax.text(i, sound[i] + 3.2, "100% obs.", ha="center", color=C["sound"], fontsize=6.2)
     ax.set_xticks(x); ax.set_xticklabels(LAB)
     ax.set_ylabel("Rate (%)")
     ax.set_ylim(0, 108); ax.set_yticks([0, 25, 50, 75, 100])
@@ -81,7 +81,7 @@ def generate(g):
     ax.barh(y, defin, left=sig, height=.5, color=C["defi"], label="Definitional")
     for i, total in enumerate(np.asarray(sig) + np.asarray(defin)):
         ax.text(total + 12, i, f"{total}", va="center", fontsize=6.3, color=C["ink"])
-    ax.text(0, 1.04, f"{sum(sig) + sum(defin):,} checked  •  0 false positives",
+    ax.text(0, 1.04, f"{sum(sig) + sum(defin):,} checked  •  0 observed FP  •  95% upper 0.10%",
             transform=ax.transAxes, ha="left", va="bottom", fontsize=6.6,
             color=C["sound"])
     ax.set_yticks(y); ax.set_yticklabels(VLAB); ax.invert_yaxis()
@@ -136,7 +136,7 @@ def generate(g):
     for vals, marker, color, label in [
             (rel, "o", C["sig"], "Relation signature"),
             (defin, "s", C["defi"], "Definitional"),
-            (functional, "^", C["func"], "Functional")]:
+            (functional, "^", C["func"], "Functional (firing only)")]:
         ax.plot(x, vals, marker=marker, color=color, label=label,
                 markeredgecolor="white", markeredgewidth=.45)
     ax.set_xticks(x); ax.set_xticklabels(VLAB)
@@ -196,7 +196,7 @@ def generate(g):
         ymax = max(counts) * 1.23
         ax.plot([2.7, 2.7, 5.3, 5.3], [ymax*.82, ymax*.88, ymax*.88, ymax*.82],
                 color=C["error"], lw=.7)
-        ax.text(4, ymax*.91, f"stable: {stable}/{total} ({stable/total:.0%})",
+        ax.text(4, ymax*.91, f"pilot: {stable}/{total} (95% CI 13.6–30.6%)",
                 ha="center", fontsize=6.1, color=C["error"])
         ax.set_xticks(range(k_decodes + 1))
         ax.set_xlabel(f"Recurrence across {k_decodes} additional decodes")

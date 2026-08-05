@@ -139,7 +139,7 @@ def make_svg(path: Path) -> None:
     add('  <text x="1054" y="291" text-anchor="middle" class="math">|M| ≤ #errors</text>')
     add('  <line x1="950" y1="306" x2="1158" y2="306" stroke="#777777" stroke-width="1"/>')
     add('  <rect data-graph-role="node" x="949" y="325" width="210" height="76" fill="#fff4ed" stroke="#e56b21" stroke-width="2"/>')
-    add('  <text x="1054" y="350" text-anchor="middle" class="small" fill="#b74c13">SOUND LOWER BOUND</text>')
+    add('  <text x="1054" y="350" text-anchor="middle" class="small" fill="#b74c13">CONDITIONAL LOWER BOUND</text>')
     add('  <text x="1054" y="383" text-anchor="middle" font-size="25" font-weight="700" fill="#b74c13">#errors ≥ 3</text>')
 
     def guarantee(y, title, detail):

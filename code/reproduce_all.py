@@ -99,6 +99,20 @@ def installed_versions() -> dict[str, str]:
     return versions
 
 
+def write_common_document_ids(output_dir: Path) -> Path:
+    """Write the exact common-set indices and titles used by the main analysis."""
+    sys.path.insert(0, str(ROOT / "code"))
+    import analyze  # imported here so the released selection predicate is authoritative
+
+    records = [
+        {"index": index, "title": analyze.DOCS[index]["title"]}
+        for index in analyze.COMMON
+    ]
+    path = output_dir / "common_document_ids.json"
+    path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
 def run_task(
     name: str,
     script: str,
@@ -182,6 +196,8 @@ def main() -> None:
         for name, script in tasks:
             records.append(run_task(name, script, output_dir, environment))
 
+    common_ids_path = write_common_document_ids(output_dir)
+
     manifest = {
         "status": "PASS",
         "offline": True,
@@ -189,11 +205,13 @@ def main() -> None:
         "python": sys.version,
         "platform": platform.platform(),
         "dependencies": installed_versions(),
+        "common_document_ids": str(common_ids_path.relative_to(ROOT)),
         "tasks": records,
     }
     manifest_path = output_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(f"\nAll tasks passed. Manifest: {manifest_path.relative_to(ROOT)}")
+    print(f"\nCommon-set IDs: {common_ids_path.relative_to(ROOT)}")
+    print(f"All tasks passed. Manifest: {manifest_path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
