@@ -14,6 +14,70 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "result" / "figs"
 
 
+def _register_embeddable_reportlab_fonts() -> None:
+    """Bind ReportLab's Times aliases to embeddable TrueType fonts.
+
+    svglib maps italic SVG text and some mathematical glyphs to the PDF
+    Base-14 names ``Times-Italic``, ``Times-Roman``, and ``Symbol``.  Those
+    fonts are not embedded by ReportLab, which can make an otherwise valid
+    vector figure fail an IEEE PDF compliance check.  Registering the aliases
+    before parsing the SVG preserves the appearance while forcing TrueType
+    subsetting in the exported PDF.
+    """
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    font_sets = [
+        {
+            "regular": Path("/System/Library/Fonts/Supplemental/Times New Roman.ttf"),
+            "italic": Path("/System/Library/Fonts/Supplemental/Times New Roman Italic.ttf"),
+            "bold": Path("/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf"),
+            "bold_italic": Path("/System/Library/Fonts/Supplemental/Times New Roman Bold Italic.ttf"),
+            "symbol": Path("/System/Library/Fonts/Symbol.ttf"),
+        },
+        {
+            "regular": Path("C:/Windows/Fonts/times.ttf"),
+            "italic": Path("C:/Windows/Fonts/timesi.ttf"),
+            "bold": Path("C:/Windows/Fonts/timesbd.ttf"),
+            "bold_italic": Path("C:/Windows/Fonts/timesbi.ttf"),
+            "symbol": Path("C:/Windows/Fonts/seguisym.ttf"),
+        },
+        {
+            "regular": Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf"),
+            "italic": Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Italic.ttf"),
+            "bold": Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Bold.ttf"),
+            "bold_italic": Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-BoldItalic.ttf"),
+            "symbol": Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        },
+    ]
+    fonts = next(
+        (candidate for candidate in font_sets if all(path.is_file() for path in candidate.values())),
+        None,
+    )
+    if fonts is None:
+        raise RuntimeError(
+            "Figure 1 PDF export needs an embeddable Times-compatible TrueType "
+            "font family. Install Times New Roman or Liberation Serif."
+        )
+
+    aliases = {
+        "Times-Roman": fonts["regular"],
+        "Times-Italic": fonts["italic"],
+        "Times-Bold": fonts["bold"],
+        "Times-BoldItalic": fonts["bold_italic"],
+        "Symbol": fonts["symbol"],
+    }
+    for name, path in aliases.items():
+        pdfmetrics.registerFont(TTFont(name, str(path)))
+    pdfmetrics.registerFontFamily(
+        "Times",
+        normal="Times-Roman",
+        bold="Times-Bold",
+        italic="Times-Italic",
+        boldItalic="Times-BoldItalic",
+    )
+
+
 def make_svg(path: Path) -> None:
     # Fireworks Tech Graph list method: one SVG element per explicit line.
     lines = []
@@ -195,6 +259,7 @@ def write_assets(out_dir: Path = OUT) -> None:
         renderPDF = None
 
     if renderPDF is not None:
+        _register_embeddable_reportlab_fonts()
         drawing = svg2rlg(str(svg_path))
         if drawing is None:
             raise RuntimeError(f"Could not parse {svg_path} for vector export.")
