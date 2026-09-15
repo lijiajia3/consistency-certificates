@@ -5,6 +5,7 @@ The plotting code is kept separate from the data collection in
 ``make_figures_pub.py`` so the visual grammar can be audited independently.
 """
 
+import csv
 import json
 import os
 from collections import Counter
@@ -74,44 +75,64 @@ def generate(g):
               handlelength=1.5, columnspacing=1.8)
     clean(ax); save(fig, "F2_gradient")
 
-    # F3 — evidence scale, with the aggregate soundness result called out once.
-    fig, ax = plt.subplots(figsize=(3.5, 2.35)); y = np.arange(len(VALID))
-    sig = [D[m]["sig_v"] for m in VALID]
-    defin = [D[m]["def_v"] for m in VALID]
-    ax.barh(y, sig, height=.5, color=C["sig"], label="Relation signature")
-    ax.barh(y, defin, left=sig, height=.5, color=C["defi"], label="Definitional")
-    for i, total in enumerate(np.asarray(sig) + np.asarray(defin)):
-        ax.text(total + 12, i, f"{total}", va="center", fontsize=6.3, color=C["ink"])
-    ax.text(0, 1.04, f"{sum(sig) + sum(defin):,} checked  •  0 observed FP  •  95% upper 0.10%",
-            transform=ax.transAxes, ha="left", va="bottom", fontsize=6.6,
-            color=C["sound"])
-    ax.set_yticks(y); ax.set_yticklabels(VLAB); ax.invert_yaxis()
-    ax.set_xlabel("Checkable violations")
-    ax.set_xlim(0, max(np.asarray(sig) + np.asarray(defin)) * 1.13)
-    ax.legend(loc="lower center", bbox_to_anchor=(.5, 1.12), ncol=2,
-              handlelength=1.5)
+    # F3 — validation sources are separated by independence.  The large
+    # same-corpus empirical tally is intentionally omitted here because the
+    # evaluation split helped define that signature inventory.
+    reliability_path = os.path.join(ROOT, "result", "revision", "relation_reliability.csv")
+    with open(reliability_path, newline="", encoding="utf-8") as handle:
+        reliability = list(csv.DictReader(handle))
+    scierc_path = os.path.join(
+        ROOT, "result", "scierc", "per_document_Qwen__Qwen2.5-32B-Instruct.csv"
+    )
+    with open(scierc_path, newline="", encoding="utf-8") as handle:
+        scierc = list(csv.DictReader(handle))
+
+    def totals(setting):
+        selected = [row for row in reliability if row["setting"] == setting]
+        return sum(int(row["sound"]) for row in selected), sum(int(row["checkable"]) for row in selected)
+
+    validation = [
+        ("Definitional", sum(D[m]["def_sound"] for m in VALID), sum(D[m]["def_v"] for m in VALID)),
+        ("Disjoint-document", *totals("holdout")),
+        ("Schema-only", *totals("schema_only")),
+        ("SciERC", sum(int(row["sound"]) for row in scierc), sum(int(row["checkable"]) for row in scierc)),
+    ]
+    rates, lower, upper = [], [], []
+    for _, sound_count, check_count in validation:
+        rate = sound_count / check_count
+        lo = 0.0 if sound_count == 0 else float(beta.ppf(.025, sound_count, check_count - sound_count + 1))
+        hi = 1.0 if sound_count == check_count else float(beta.ppf(.975, sound_count + 1, check_count - sound_count))
+        rates.append(rate * 100)
+        lower.append(lo * 100)
+        upper.append(hi * 100)
+    y = np.arange(len(validation))
+    fig, ax = plt.subplots(figsize=(3.5, 2.55))
+    ax.errorbar(
+        rates, y,
+        xerr=[np.asarray(rates) - np.asarray(lower), np.asarray(upper) - np.asarray(rates)],
+        fmt="o", color=C["fire"], ecolor=C["fire"], elinewidth=.8, capsize=2.2,
+        markeredgecolor="white", markeredgewidth=.5,
+    )
+    ax.set_yticks(y)
+    ax.set_yticklabels([f"{name}\n{sound:,}/{total:,}" for name, sound, total in validation])
+    ax.invert_yaxis()
+    ax.set_xlabel("Observed soundness (%)")
+    ax.set_xlim(97.0, 100.15)
+    ax.set_xticks([97, 98, 99, 100])
+    ax.text(
+        0, -0.28,
+        "Definitional 0/340 false positives: one-sided 95% upper bound 0.88%",
+        transform=ax.transAxes, ha="left", va="top", fontsize=5.2, color=C["n"],
+    )
     clean(ax); save(fig, "F3_soundness")
 
     # F4 — binned proportions with approximate 95% binomial intervals.
-    rows = []
-    for m in VALID:
-        for i in COMMON:
-            ext = load(m, i)
-            if not ext or ext.get("_error"):
-                continue
-            nrel = len([r for r in ext.get("relations", [])
-                        if isinstance(r, dict) and NAME2PID.get(r.get("relation"))])
-            vs, et = find_violations(ext, SIGS, "empirical")
-            vs, _ = validate_against_gold(vs, et, DOCS[i])
-            rows.append((nrel, int(disjoint_lower_bound([v["he"] for v in vs]) > 0)))
-    rows = np.asarray(rows)
-    edges = [0, 5, 10, 15, 20, 25, 999]
-    labels = ["1–5", "6–10", "11–15", "16–20", "21–25", "26+"]
-    rates, ns = [], []
-    for a, b in zip(edges[:-1], edges[1:]):
-        mask = (rows[:, 0] > a) & (rows[:, 0] <= b)
-        ns.append(int(mask.sum()))
-        rates.append(rows[mask, 1].mean() * 100 if mask.sum() else 0)
+    volume_path = os.path.join(ROOT, "result", "revision", "tightness_by_volume.csv")
+    with open(volume_path, newline="", encoding="utf-8") as handle:
+        volume_rows = list(csv.DictReader(handle))
+    labels = [row["relation_volume_bin"].replace("-", "–") for row in volume_rows]
+    rates = [float(row["firing_rate"]) * 100 for row in volume_rows]
+    ns = [int(row["document_model_pairs"]) for row in volume_rows]
     ci = [1.96 * np.sqrt((r / 100) * (1 - r / 100) / n) * 100 if n else 0
           for r, n in zip(rates, ns)]
     fig, ax = plt.subplots(figsize=(3.5, 2.45)); xx = np.arange(len(labels))
@@ -222,7 +243,8 @@ def generate(g):
         clean(ax, left=False); ax.tick_params(axis="y", length=0)
         save(fig, "F8_complementary")
 
-    # F9 — raw per-document data and the implied review ordering.
+    # F9 — one model's raw document-level association and the four-model
+    # fixed-budget comparison reported in the manuscript.
     model = "deepseek-ai/DeepSeek-V3"
     bounds, errors = D[model]["per_b"], D[model]["per_e"]
     if len(bounds) > 5:
@@ -237,15 +259,29 @@ def generate(g):
         a1.text(.98, .96, f"Spearman ρ = {rho:.2f}", transform=a1.transAxes,
                 ha="right", va="top", fontsize=6.3)
         panel_label(a1, "a"); clean(a1)
-        order = np.argsort(bounds)[::-1]
-        cumulative = np.cumsum([errors[j] for j in order]) / max(sum(errors), 1)
-        reviewed = np.arange(1, len(cumulative) + 1) / len(cumulative) * 100
-        a2.plot(reviewed, cumulative * 100, color=C["fire"], lw=1.4,
-                label="Certificate order")
-        a2.plot([0, 100], [0, 100], "--", color=C["n"], lw=.8,
-                label="Random order")
-        a2.set_xlabel("Documents reviewed (%)"); a2.set_ylabel("Errors found (%)")
-        a2.legend(loc="upper left", handlelength=2.2)
+        budget_path = os.path.join(ROOT, "result", "revision", "review_budget.csv")
+        with open(budget_path, newline="", encoding="utf-8") as handle:
+            budget_rows = list(csv.DictReader(handle))
+        fractions = [0.05, 0.10, 0.20]
+        for method, label, marker, color in [
+            ("certificate", "Certificate", "o", C["fire"]),
+            ("cross_model_disagreement", "Disagreement", "s", C["error"]),
+            ("random", "Random", "^", C["n"]),
+        ]:
+            means = []
+            for fraction in fractions:
+                selected = [
+                    float(row["errors_per_document"])
+                    for row in budget_rows
+                    if row["method"] == method and abs(float(row["budget_fraction"]) - fraction) < 1e-9
+                ]
+                means.append(float(np.mean(selected)))
+            a2.plot(np.asarray(fractions) * 100, means, marker=marker, color=color,
+                    lw=1.1, label=label, markeredgecolor="white", markeredgewidth=.4)
+        a2.set_xlabel("Review budget (% documents)")
+        a2.set_ylabel("Errors per reviewed document")
+        a2.set_xticks([5, 10, 20])
+        a2.legend(loc="upper right", handlelength=1.8)
         panel_label(a2, "b"); clean(a2)
         save(fig, "F9_triage")
 

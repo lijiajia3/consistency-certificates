@@ -44,7 +44,8 @@ disjoint hyperedge packing turns the resulting violations into a conditional, go
 | Hold-out signatures (disjoint document split) | out-of-sample soundness | **99.8%** (3495 / 3501; exact 95% CI 99.63–99.94%) |
 | Schema-only signatures (Wikidata semantics, **zero corpus**) | soundness | **98.5%** (3076 / 3122; exact 95% CI 98.04–98.92%) |
 | Independent SciERC corpus | soundness | **100%** (134 / 134; exact 95% CI 97.28–100%) |
-| In-source diagnostic (4 models, empirical + definitional) | observed false positives | **0 / 2887**; one-sided 95% upper bound **0.10%** |
+| Definitional-signature audit (4 models) | observed false positives | **0 / 340**; one-sided 95% upper bound **0.88%** |
+| Construction-aligned empirical diagnostic | observed false positives | **0 / 2547**; not treated as independent validation |
 | Cross-architecture control (GLM-4-32B) | observed false positives | **0 / 1085** over 300/300 valid documents |
 | Firing rate (empirical signatures) | documents with a non-zero bound | **66–73%** |
 | Detectable class | share of gold-verifiable emitted errors participating in conflicts | **24.1–25.2%** |
@@ -61,9 +62,10 @@ usable extractor contains a gold-measured error, and firing is 66–73%.*
 |:---:|:---:|
 | ![Checkable violations under relation-signature and definitional constraints](result/figs/F3_soundness.png) | ![Certifiable and internally consistent shares of gold-measured errors](result/figs/F6_detectable.png) |
 
-*Figures 3 and 6: No false positive was observed among 2,887 checkable in-source violations
-(one-sided 95% upper bound 0.10%); by construction, the certificate exposes only the internally
-inconsistent 24.1–25.2% of gold-verifiable emitted errors.*
+*Figures 3 and 6: Figure 3 compares definitional, disjoint-document, schema-only, and independent-corpus
+validation. The 0/340 definitional result has a one-sided 95% false-positive-rate upper bound of 0.88%.
+By construction, the certificate exposes only the internally inconsistent 24.1–25.2% of gold-verifiable
+emitted errors.*
 
 Evaluation runs on **297 Re-DocRED documents** on which all four usable extractors produce valid
 structured output. DeepSeek-V3 was re-queried over the full 300-document dev split (299 valid
@@ -71,8 +73,8 @@ outputs, one empty), so no extractor's coverage is partial in the released data.
 
 Observed soundness is **99.8%** for disjoint-document signatures, **98.5%** for a fully
 corpus-independent schema, and **100%** for 134 checkable violations on independently annotated
-SciERC. The in-source 0/2887 result shares an annotation family between
-empirical signature construction and validation, so it is not an independent transfer estimate. The theorem
+SciERC. The 0/2547 empirical result shares an annotation family between
+signature construction and validation, so it is reported only as a construction-aligned diagnostic. The theorem
 (`#errors ≥ maximum vertex-disjoint hyperedge packing`) holds on every document and the exact
 solver is separately checked against exhaustive enumeration on 500 random conflict hypergraphs.
 
@@ -115,7 +117,7 @@ Individual components can also be run separately:
 # Theorem unit tests + 500-random-hypergraph exhaustive cross-check
 python3 code/certificate.py
 
-# Main results table (0 observed false positives in 2887 checks, firing, detectable class)
+# Main results table (construction-aligned diagnostic, firing, detectable class)
 python3 code/analyze.py
 
 # Soundness ablations (99.8% hold-out, 98.5% schema-only)

@@ -82,7 +82,8 @@ print("common docs (4 valid) =", len(COMMON))
 
 def collect():
     D = {m: dict(valid=0, n=0, fire=0, viol=0, sound=0, det=0, dett=0, rels=0,
-                 d_fire=0, d_viol=0, f_fire=0, f_viol=0, sig_v=0, def_v=0, fun_v=0,
+                 d_fire=0, d_viol=0, f_fire=0, f_viol=0, sig_v=0, def_v=0,
+                 def_sound=0, fun_v=0,
                  true=0, per_b=[], per_e=[], per_pid=Counter()) for m in MODELS}
     for m in MODELS:
         R = D[m]
@@ -109,10 +110,17 @@ def collect():
             for v in vs:
                 inv |= {f"E:{v['h']}", f"E:{v['t']}", f"R:{v['h']}|{v['pid']}|{v['t']}"}
             R["det"] += sum(1 for it in ti if it in inv); R["dett"] += len(ti)
-            R["per_b"].append(checkable_bound); R["per_e"].append(len(ti))
+            # Figures that describe the deployed certificate must use the
+            # runtime bound over all emitted conflicts.  Gold-checkable bounds
+            # are only for retrospective validation and can differ when an
+            # endpoint cannot be aligned conservatively.
+            R["per_b"].append(runtime_bound); R["per_e"].append(len(ti))
             R["true"] += len(ti)
             dv, _ = find_violations(ext, SIGS, "definitional"); dv, _ = validate_against_gold(dv, et, DOCS[i])
-            R["d_fire"] += (disjoint_lower_bound([v["he"] for v in dv]) > 0); R["def_v"] += len([v for v in dv if v["checkable"]])
+            R["d_fire"] += (disjoint_lower_bound([v["he"] for v in dv]) > 0)
+            definitional_checkable = [v for v in dv if v["checkable"]]
+            R["def_v"] += len(definitional_checkable)
+            R["def_sound"] += sum(1 for v in definitional_checkable if v["sound"])
             fv = find_functional_violations(ext); R["f_fire"] += (disjoint_lower_bound([v["he"] for v in fv]) > 0); R["fun_v"] += len(fv)
     return D
 
