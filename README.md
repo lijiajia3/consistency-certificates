@@ -205,7 +205,8 @@ consistency_certificates/
 └── LICENSE
 ```
 
-The revised manuscript source is in `paper/`; point-by-point response material is in `revision/`.
+The journal submission package contains the manuscript source and point-by-point response. Those
+author-facing submission files are kept outside this public code-and-data repository.
 
 ## Data and models
 
