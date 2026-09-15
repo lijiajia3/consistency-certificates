@@ -1,0 +1,53 @@
+setting,model,document_index,title,pid,relation,emitted_head_type,emitted_tail_type,gold_head_type,gold_tail_type,head,tail,cause
+holdout,Qwen2.5-72B,211,William Hepburn Armstrong,P131,located in the administrative territorial entity,PER,LOC,PER,LOC,william hepburn armstrong,pennsylvania,valid type pair absent from signature-training fold
+holdout,DeepSeek-V3,211,William Hepburn Armstrong,P131,located in the administrative territorial entity,PER,LOC,PER,LOC,william hepburn armstrong,pennsylvania,valid type pair absent from signature-training fold
+holdout,Qwen2.5-32B,116,German torpedo boat Kondor,P1344,participant in,MISC,MISC,MISC,MISC,kondor,spanish civil war,valid type pair absent from signature-training fold
+holdout,Qwen2.5-32B,116,German torpedo boat Kondor,P1344,participant in,MISC,MISC,MISC,MISC,kondor,world war ii,valid type pair absent from signature-training fold
+holdout,Qwen2.5-72B,116,German torpedo boat Kondor,P1344,participant in,MISC,MISC,MISC,MISC,kondor,spanish civil war,valid type pair absent from signature-training fold
+holdout,Qwen2.5-72B,286,Battle of Chiari,P1344,participant in,LOC,ORG,LOC,ORG,england,grand alliance,valid type pair absent from signature-training fold
+schema_only,Qwen2.5-14B,72,War of the Quadruple Alliance,P1344,participant in,LOC,MISC,LOC,MISC,spain,the war of the quadruple alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-14B,72,War of the Quadruple Alliance,P1344,participant in,LOC,MISC,LOC,MISC,britain,the war of the quadruple alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-14B,72,War of the Quadruple Alliance,P1344,participant in,LOC,MISC,LOC,MISC,austria,the war of the quadruple alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-14B,221,Tomasz Bohdanowicz-Dworzecki,P800,notable work,PER,LOC,PER,LOC,tomasz bohdanowicz dworzecki,cathedral of the immaculate conception of the holy virgin mary,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,37,Björn von der Esch,P150,contains administrative territorial entity,ORG,LOC,ORG,LOC,european union,sweden,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,72,War of the Quadruple Alliance,P710,participant,MISC,LOC,MISC,LOC,the war of the quadruple alliance,britain,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,72,War of the Quadruple Alliance,P710,participant,MISC,LOC,MISC,LOC,the war of the quadruple alliance,austria,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,72,War of the Quadruple Alliance,P710,participant,MISC,LOC,MISC,LOC,the war of the quadruple alliance,dutch republic,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,united nations,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,african union,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,intergovernmental authority on development,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,114,Across the Black Waters,P710,participant,MISC,LOC,MISC,LOC,world war i,britain,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,116,German torpedo boat Kondor,P1344,participant in,MISC,MISC,MISC,MISC,kondor,spanish civil war,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,116,German torpedo boat Kondor,P1344,participant in,MISC,MISC,MISC,MISC,kondor,world war ii,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,216,Clear and Present Danger (film),P175,performer,PER,PER,PER,PER,jack ryan,harrison ford,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,216,Clear and Present Danger (film),P175,performer,PER,PER,PER,PER,james greer,james earl jones,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-32B,221,Tomasz Bohdanowicz-Dworzecki,P800,notable work,PER,LOC,PER,LOC,tomasz bohdanowicz dworzecki,cathedral of the immaculate conception of the holy virgin mary,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,29,The Christian Manifesto,P710,participant,MISC,LOC,MISC,LOC,korean war,china,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,united nations,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,african union,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,intergovernmental authority on development,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,116,German torpedo boat Kondor,P1344,participant in,MISC,MISC,MISC,MISC,kondor,spanish civil war,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,157,George Prévost,P710,participant,MISC,LOC,MISC,LOC,war of 1812,britain,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,157,George Prévost,P710,participant,MISC,LOC,MISC,LOC,war of 1812,united states,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,160,U.S. European Command State Partnership Program,P463,member of,LOC,ORG,LOC,ORG,u s,nato,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,Qwen2.5-72B,286,Battle of Chiari,P1344,participant in,LOC,ORG,LOC,ORG,england,grand alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,22,Morogoro Region,P1001,applies to jurisdiction,PER,LOC,PER,LOC,dr kebwe steven kebwe,morogoro region,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,29,The Christian Manifesto,P710,participant,MISC,LOC,MISC,LOC,korean war,people s republic of china,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,68,"Zabiele, Warmian-Masurian Voivodeship",P710,participant,MISC,LOC,MISC,LOC,world war ii,poland,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,68,"Zabiele, Warmian-Masurian Voivodeship",P710,participant,MISC,LOC,MISC,LOC,world war ii,soviet union,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,72,War of the Quadruple Alliance,P1344,participant in,LOC,MISC,LOC,MISC,spain,war of the quadruple alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,72,War of the Quadruple Alliance,P1344,participant in,LOC,MISC,LOC,MISC,britain,war of the quadruple alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,72,War of the Quadruple Alliance,P1344,participant in,LOC,MISC,LOC,MISC,austria,war of the quadruple alliance,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,united nations,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,african union,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,80,Outline of South Sudan,P463,member of,LOC,ORG,LOC,ORG,south sudan,intergovernmental authority on development,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,94,East Asia Economic Caucus,P463,member of,LOC,ORG,LOC,ORG,japan,apec,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,95,Tiana (Disney),P175,performer,PER,PER,PER,PER,tiana,anika noni rose,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,95,Tiana (Disney),P175,performer,PER,PER,PER,PER,tiana,elizabeth m dampier,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,114,Across the Black Waters,P710,participant,MISC,LOC,MISC,LOC,world war i,britain,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,176,Carol II of Romania,P1001,applies to jurisdiction,PER,LOC,PER,LOC,carol ii,romania,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,176,Carol II of Romania,P1001,applies to jurisdiction,PER,LOC,PER,LOC,carol ii,romania,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,197,Gregorio Pacheco,P1001,applies to jurisdiction,PER,LOC,PER,LOC,gregorio pacheco leyes,bolivia,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,223,King Louie,P175,performer,PER,PER,PER,PER,king louie,louis prima,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,223,King Louie,P175,performer,PER,PER,PER,PER,king louie,christopher walken,ontology rule conflicts with Re-DocRED annotation policy
+schema_only,DeepSeek-V3,241,How to Save a Life (Grey's Anatomy),P175,performer,PER,PER,PER,PER,dr penelope blake,samantha sloyan,ontology rule conflicts with Re-DocRED annotation policy

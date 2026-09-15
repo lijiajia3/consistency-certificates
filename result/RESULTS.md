@@ -1,49 +1,58 @@
-# Consistency Certificates — 实验结果汇总
+# Consistency Certificates：修订实验结果
 
-免金标、单次解码、可证明 sound 的黑箱 LLM 文档级 IE 错误下界证书。
-数据 Re-DocRED dev（297 篇, 4 valid 模型公共集），模型 Qwen2.5-{7B,14B,32B,72B} + DeepSeek-V3，全程黑箱 JSON-mode T=0。
+本轮修订将证书的数学对象纠正为“冲突超图”：类型签名违反对应三元超边
+`{头实体类型项, 尾实体类型项, 关系断言项}`。错误项构成超图的 hitting set，最大顶点不相交
+超边打包数给出条件错误下界。实现采用精确分支定界，并与 500 个随机小超图的穷举结果逐一核对。
 
-## 核心结果
+## Re-DocRED 主结果
 
-| 模型 | validJSON | 触发率 | soundness（可核违反→真错） | 定理逐篇 | 可检测类 |
-|---|---|---|---|---|---|
-| Qwen2.5-7B | 5% | — | — | 100% | — |
-| Qwen2.5-14B | 99% | 66% | 636/636 = **100%** | 100% | 23% |
-| Qwen2.5-32B | 100% | 66% | 548/548 = **100%** | 100% | 23% |
-| Qwen2.5-72B | 100% | 72% | 699/699 = **100%** | 100% | 22% |
-| DeepSeek-V3 | 100% | 73% | 698/698 = **100%** | 100% | 24% |
+297 篇公共文档、四个可用主模型、经验签名：
 
-- **soundness 全体 2929/2929 = 100%，零假阳**（经验签名 2581 + 定义硬签名 348）。
-- **定理**（#err ≥ 顶点覆盖 ≥ 匹配）：代码 2000 图压力测试 + 真实数据逐篇 100% 成立。
-- **稳健性**：hold-out（不相交文档签名）99.8%（3537/3544）；schema-only（零语料 Wikidata 语义）98.8%（3134/3171）。
-- **弱模型崩塌**：7B 仅 5% 产出合法结构（退化重复）。
-- **E5 self-consistency 基线**：部署 T=0 抽取的 99 个认证错误中 **21% 自洽**（≥3/5 高温解码复现）→ resampling 漏检、证书抓到。
-- **E6 triage**：逐篇下界 vs 真错 Spearman ρ=0.26–0.31；top-10 文档占下界总和 12–13%（覆盖真错 4–5%）。
-- **跨架构对照**：GLM-4-32B 651/651 = 100%（170 篇，供应商限流）。
+| 模型 | 触发文档 | 冲突超边 | 精确下界总和 | 可核验 soundness | 可检测的已发出错误 |
+|---|---:|---:|---:|---:|---:|
+| Qwen2.5-14B | 195/297 | 657 | 273 | 632/632 | 24.82% |
+| Qwen2.5-32B | 196/297 | 573 | 247 | 540/540 | 24.40% |
+| Qwen2.5-72B | 214/297 | 773 | 346 | 684/684 | 24.11% |
+| DeepSeek-V3 | 218/297 | 752 | 297 | 691/691 | 25.23% |
 
-## 数据说明
+- 经验签名 2547/2547、定义签名 340/340，合计 **2887/2887**。
+- 二折不相交文档签名：**3495/3501 = 99.8%**，exact 95% CI 99.63–99.94%。
+- 独立 Wikidata 语义签名：**3076/3122 = 98.5%**，exact 95% CI 98.04–98.92%。
+- 保守的 cluster-ID 对齐使不可核验违反从旧字符串启发式的 188 个增加到 222 个。
+- 精确下界与真错误数的 Spearman 相关为 0.327–0.369；文档 tightness 中位数为 0.080–0.083。
+- 5%、10%、20% 审核预算下，按证书排序平均每篇发现 12.63、12.25、11.45 个错误；
+  跨模型分歧基线为 10.20、10.07、10.82，随机基线为 10.37、10.38、10.37。
+- Qwen2.5-32B 的 95 个认证错误中，21 个在五次随机解码中至少复现三次（22.1%）。
+- 五模型严格完整性检查均为 50/50 文档、每文档 5 次随机解码。稳定 certified error
+  比例分别为 Qwen2.5-14B 20/144（13.9%）、Qwen2.5-32B 21/95（22.1%）、
+  Qwen2.5-72B 49/139（35.3%）、DeepSeek-V3 55/138（39.9%）、GLM-4-32B
+  39/201（19.4%）；完整 0/5--5/5 分布见 `result/revision/self_consistency_by_model.csv`。
+- GLM-4-32B 跨架构对照：300/300 篇有效，1085/1085 个可核验违反成立，逐文档 theorem
+  300/300 通过；唯一反复触发长度上限的文档使用了不含 gold 信息的防重复输出 fallback。
 
-DeepSeek-V3 的抽取已补全至全部 300 篇 dev 文档（原缺 106 篇），其中 299 篇合法输出、1 篇（doc 295）输出为空。
-论文主表在 297 篇公共集上计算（排除 Qwen2.5-14B 报错的 doc 147/176 与 V3 空输出的 doc 295）。
+## 独立语料 SciERC
 
-## 诚实定位
+签名只由 SciERC 350 篇训练文档构造，在全部 50 篇开发集和 100 篇测试集上冻结评估：
 
-- 组合下界（VC ≤ 错误数）是**数据库修复的经典结果**（Bertossi 2011；PASS 2601.20157），**非新定理**。
-- 贡献 = 把该证书**迁移到黑箱 LLM IE 可靠性认证** + 跨模型经验刻画 + 可检测类 + 与 self-consistency 互补。适配 **IEEE Access**（判 soundness，不判创新度）。
-- 与 SH-ETRs 等"类型约束涨 F1"卡死区别：**免训练、免金标、黑箱认证**。
+- 150/150 文档有效，109 篇触发；
+- 134/134 个可核验违反成立，exact 95% CI 97.28–100%；
+- 127 个违反因端点不能保守对齐而不进入 soundness 分母；
+- runtime 下界 159，gold-checkable 下界 93；
+- 150/150 篇均满足“可核验下界不超过 gold-verifiable 已发出错误数”。
 
 ## 复现
 
 ```bash
-python3 code/certificate.py            # 定理单元+压力测试
-python3 code/run_extractions.py        # 6模型×300篇 缓存抽取(需 ~/.siliconflow_key)
-python3 code/analyze.py                # 主表(E2/E3/E7)
-python3 code/ablation_holdout.py       # hold-out 99.8%
-python3 code/ablation_schema.py        # schema-only 98.8%
-python3 code/analyze_glm.py            # GLM 651/651
-python3 code/run_resample.py           # E5 K=5 高温解码
-python3 code/analyze_resample.py       # E5 分析 (21%)
-python3 code/analyze_triage.py         # E6
-python3 code/make_figures_pub.py       # 投稿级图 F1–F11
-cd paper && pdflatex main.tex          # 论文
+python3 code/certificate.py
+python3 code/analyze.py
+python3 code/ablation_holdout.py
+python3 code/ablation_schema.py
+python3 code/analyze_glm.py
+python3 code/analyze_revision.py
+python3 code/analyze_resample.py --all-models --documents 50 --samples 5 --require-complete
+python3 code/analyze_scierc.py --require-complete
+python3 code/make_figures_pub.py
+python3 code/reproduce_all.py
 ```
+
+完整机器可读结果位于 `result/revision/` 和 `result/scierc/`。

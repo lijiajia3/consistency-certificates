@@ -1,0 +1,20 @@
+{
+  "model": "Qwen/Qwen2.5-32B-Instruct",
+  "expected_documents": 150,
+  "available_documents": 150,
+  "complete": true,
+  "valid_documents": 150,
+  "firing_documents": 109,
+  "checkable_violations": 134,
+  "sound_violations": 134,
+  "uncheckable_violations": 127,
+  "soundness": 1.0,
+  "soundness_ci95": [
+    0.9728465171201998,
+    1.0
+  ],
+  "certificate_bound": 159,
+  "checkable_bound": 93,
+  "gold_verifiable_errors": 1373,
+  "theorem_documents_ok": 150
+}

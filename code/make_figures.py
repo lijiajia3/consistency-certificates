@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from common import find_violations, disjoint_lower_bound, validate_against_gold, gold_maps, TYPES, norm, NAME2PID, fuzzy_gtype, ROOT
+from common import find_violations, disjoint_lower_bound, validate_against_gold, gold_error_records, TYPES, norm, NAME2PID, ROOT
 
 plt.rcParams.update({"font.size": 11, "figure.dpi": 150, "savefig.bbox": "tight",
                      "axes.spines.top": False, "axes.spines.right": False})
@@ -101,12 +101,7 @@ print("fig3 ok, dist", counts, "hi%", round(hi/len(sc),2))
 
 # Fig 4: triage scatter
 def true_err(ext, d):
-    gtype, grel = gold_maps(d)
-    et = {norm(e["name"]): e["type"] for e in ext.get("entities", []) if isinstance(e, dict) and e.get("type") in TYPES and e.get("name")}
-    te = sum(1 for n, ty in et.items() if fuzzy_gtype(n, gtype) != ty)
-    llm = set((norm(r.get("head")), NAME2PID.get(r.get("relation")), norm(r.get("tail"))) for r in ext.get("relations", []) if isinstance(r, dict) and NAME2PID.get(r.get("relation")))
-    te += sum(1 for (h, p, t) in llm if p and fuzzy_gtype(h, gtype) and fuzzy_gtype(t, gtype) and (h, p, t) not in grel)
-    return te
+    return len(gold_error_records(ext, d)["errors"])
 
 M2 = "deepseek-ai/DeepSeek-V3"; bs, es = [], []
 for i in range(len(DOCS)):

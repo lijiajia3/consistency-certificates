@@ -8,9 +8,8 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 from common import (find_violations, find_functional_violations, disjoint_lower_bound,
-                    validate_against_gold, gold_maps, TYPES, norm, NAME2PID, REL_NAME,
+                    validate_against_gold, gold_error_records, TYPES, norm, NAME2PID, REL_NAME,
                     fuzzy_gtype, ROOT)
-import certificate as CC
 
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Arial", "DejaVu Sans", "Liberation Sans"],
@@ -67,12 +66,7 @@ def load(m, i):
 
 
 def true_items(ext, d):
-    gt, gr = gold_maps(d)
-    et = {norm(e["name"]): e["type"] for e in ext.get("entities", []) if isinstance(e, dict) and e.get("type") in TYPES and e.get("name")}
-    it = [f"E:{n}" for n, ty in et.items() if fuzzy_gtype(n, gt) != ty]
-    llm = set((norm(r.get("head")), NAME2PID.get(r.get("relation")), norm(r.get("tail"))) for r in ext.get("relations", []) if isinstance(r, dict) and NAME2PID.get(r.get("relation")))
-    it += [f"R:{h}|{p}|{t}" for (h, p, t) in llm if p and fuzzy_gtype(h, gt) and fuzzy_gtype(t, gt) and (h, p, t) not in gr]
-    return it
+    return [record["item"] for record in gold_error_records(ext, d)["errors"]]
 
 
 def _has_valid_output(i, m):
@@ -89,7 +83,7 @@ print("common docs (4 valid) =", len(COMMON))
 def collect():
     D = {m: dict(valid=0, n=0, fire=0, viol=0, sound=0, det=0, dett=0, rels=0,
                  d_fire=0, d_viol=0, f_fire=0, f_viol=0, sig_v=0, def_v=0, fun_v=0,
-                 match=0, cover=0, true=0, per_b=[], per_e=[], per_pid=Counter()) for m in MODELS}
+                 true=0, per_b=[], per_e=[], per_pid=Counter()) for m in MODELS}
     for m in MODELS:
         R = D[m]
         idxs = COMMON if m in VALID else list(range(len(DOCS)))
@@ -104,8 +98,9 @@ def collect():
             R["valid"] += 1
             R["rels"] += len([r for r in ext.get("relations", []) if isinstance(r, dict)])
             vs, et = find_violations(ext, SIGS, "empirical"); vs, _ = validate_against_gold(vs, et, DOCS[i])
-            b = disjoint_lower_bound([v["he"] for v in vs]); R["fire"] += (b > 0)
+            runtime_bound = disjoint_lower_bound([v["he"] for v in vs]); R["fire"] += (runtime_bound > 0)
             chk = [v for v in vs if v["checkable"]]; R["viol"] += len(chk); R["sound"] += sum(1 for v in chk if v["sound"]); R["sig_v"] += len(chk)
+            checkable_bound = disjoint_lower_bound([v["he"] for v in chk])
             # Per-relation concentration is a gold-free descriptive count, so it
             # includes every empirical signature violation, not only the subset
             # whose endpoints align to gold for the soundness evaluation.
@@ -114,12 +109,7 @@ def collect():
             for v in vs:
                 inv |= {f"E:{v['h']}", f"E:{v['t']}", f"R:{v['h']}|{v['pid']}|{v['t']}"}
             R["det"] += sum(1 for it in ti if it in inv); R["dett"] += len(ti)
-            R["per_b"].append(b); R["per_e"].append(len(ti))
-            # matching / vertex-cover (entity projection)
-            edges = [(f"E:{v['h']}", f"E:{v['t']}") for v in vs]
-            if edges:
-                items = list({x for e in edges for x in e}); cc = CC.certificate(items, edges)
-                R["match"] += cc["matching_bound"]; R["cover"] += cc["vertex_cover_bound"]
+            R["per_b"].append(checkable_bound); R["per_e"].append(len(ti))
             R["true"] += len(ti)
             dv, _ = find_violations(ext, SIGS, "definitional"); dv, _ = validate_against_gold(dv, et, DOCS[i])
             R["d_fire"] += (disjoint_lower_bound([v["he"] for v in dv]) > 0); R["def_v"] += len([v for v in dv if v["checkable"]])
@@ -239,20 +229,20 @@ ax.plot([22.5, 26.5], [4.6, 4.6], color=_RED, lw=1.9, solid_capstyle="round")
 ax.text(27.3, 4.6, "signature violation", ha="left", va="center", fontsize=5.4, color="#5C616B")
 _arr(38, 19.5, 40.5, 19.5, _BLUE, 1.6, 12)
 
-# panel b: conflict graph -> matching
+# panel b: conflict hypergraph -> disjoint packing
 _panel(40.5, 2, 29, 35)
 ax.text(41.9, 39.0, "b", ha="left", va="center", fontsize=10, fontweight="bold", color=_INK)
-ax.text(45.2, 34.6, "Conflict graph", ha="left", va="center", fontsize=7.4, fontweight="bold", color=_INK)
-ax.text(45.2, 31.7, "each edge: a pair that", ha="left", va="center", fontsize=5.7, color=_GREY)
-ax.text(45.2, 29.4, "cannot both be correct", ha="left", va="center", fontsize=5.7, color=_GREY)
+ax.text(45.2, 34.6, "Conflict hypergraph", ha="left", va="center", fontsize=7.4, fontweight="bold", color=_INK)
+ax.text(45.2, 31.7, "each enclosure: items that", ha="left", va="center", fontsize=5.7, color=_GREY)
+ax.text(45.2, 29.4, "cannot all be correct", ha="left", va="center", fontsize=5.7, color=_GREY)
 for _px, _a, _b in [(48, "Olympics", "Mediaș"), (55, "medal", "China"), (62, "IOC", "1894")]:
     ax.add_patch(FancyBboxPatch((_px - 3.0, 15.0), 6.0, 11.0, boxstyle="round,pad=0.1,rounding_size=1.6", fc="#E6F4EC", ec="#93CDA9", lw=1.0, zorder=1))
     _gedge((_px, 24.5), (_px, 16.5), _RED, 1.9, directed=False)
     _scircle(_px, 24.5, True); _scircle(_px, 16.5, False)
     ax.text(_px, 26.9, _a, ha="center", fontsize=5.0, color=_INK)
     ax.text(_px, 13.9, _b, ha="center", fontsize=5.0, color=_INK)
-ax.text(55, 10.4, "3 vertex-disjoint conflicts", ha="center", fontsize=5.8, color="#5C616B")
-ax.text(55, 6.7, "maximum matching $= 3$", ha="center", fontsize=7.6, color=_DKGREEN, fontweight="bold")
+ax.text(55, 10.4, "3 vertex-disjoint hyperedges", ha="center", fontsize=5.8, color="#5C616B")
+ax.text(55, 6.7, "maximum packing $= 3$", ha="center", fontsize=7.6, color=_DKGREEN, fontweight="bold")
 _arr(69.5, 19.5, 72.0, 19.5, _BLUE, 1.6, 12)
 
 # panel c: certificate
@@ -270,8 +260,7 @@ _outbox(85.5, 3.8, 24, 3.5, "a provable floor, not an estimate")
 save(fig, "F1_concept")
 """
 from make_figure1_svg import write_assets as write_figure1_assets
-if not all(os.path.exists(os.path.join(FIG, f"F1_concept.{ext}")) for ext in ("svg", "pdf", "png")):
-    write_figure1_assets(FIG)
+write_figure1_assets(FIG)
 
 # The statistical figures use a separate Nature-style visual layer.  Exit after
 # generating them; the legacy code below remains only as a provenance snapshot.

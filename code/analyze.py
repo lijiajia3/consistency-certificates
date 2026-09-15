@@ -6,8 +6,8 @@ extractors use only documents on which all four returned valid output, exactly a
 reported in the manuscript.
 """
 import json, os
-from common import (find_violations, disjoint_lower_bound, validate_against_gold, gold_maps,
-                    TYPES, norm, NAME2PID, fuzzy_gtype, ROOT)
+from common import (find_violations, disjoint_lower_bound, validate_against_gold,
+                    gold_error_records, TYPES, ROOT)
 
 MODELS = ["Qwen/Qwen2.5-7B-Instruct", "Qwen/Qwen2.5-14B-Instruct", "Qwen/Qwen2.5-32B-Instruct",
           "Qwen/Qwen2.5-72B-Instruct", "deepseek-ai/DeepSeek-V3"]
@@ -51,15 +51,11 @@ COMMON = [
 
 
 def true_errors(ext, d):
-    """Upper-bound true error count (for the theorem check): type errors + spurious relations."""
-    gtype, grel = gold_maps(d)
-    etype = {norm(e["name"]): e["type"] for e in ext.get("entities", []) if isinstance(e, dict) and e.get("type") in TYPES and e.get("name")}
-    tterr = sum(1 for n, ty in etype.items() if fuzzy_gtype(n, gtype) != ty)
-    llm_rels = set((norm(r.get("head")), NAME2PID.get(r.get("relation")), norm(r.get("tail")))
-                   for r in ext.get("relations", []) if isinstance(r, dict) and NAME2PID.get(r.get("relation")))
-    rerr = sum(1 for (h, p, t) in llm_rels
-               if p and fuzzy_gtype(h, gtype) and fuzzy_gtype(t, gtype) and (h, p, t) not in grel)
-    return tterr, rerr, etype, grel, gtype, llm_rels
+    """Gold-verifiable type and spurious-relation errors using cluster IDs."""
+    records = gold_error_records(ext, d)["errors"]
+    tterr = sum(record["category"] == "entity_type" for record in records)
+    rerr = sum(record["category"] == "relation_spurious" for record in records)
+    return tterr, rerr, [record["item"] for record in records]
 
 
 def analyze_model(m, constraint, document_indices):
@@ -77,20 +73,20 @@ def analyze_model(m, constraint, document_indices):
         viols, _ = validate_against_gold(viols, etype, DOCS[i])
         b = disjoint_lower_bound([v["he"] for v in viols])
         chk = [v for v in viols if v["checkable"]]
+        checkable_bound = disjoint_lower_bound([v["he"] for v in chk])
         sc = sum(1 for v in chk if v["sound"])
-        tterr, rerr, et, grel, gtype, llm_rels = true_errors(ext, DOCS[i])
+        tterr, rerr, true_items = true_errors(ext, DOCS[i])
         te = tterr + rerr
         involved = set()
         for v in viols:
             involved |= {f"E:{v['h']}", f"E:{v['t']}", f"R:{v['h']}|{v['pid']}|{v['t']}"}
-        true_items = ([f"E:{n}" for n, ty in et.items() if fuzzy_gtype(n, gtype) != ty] +
-                      [f"R:{h}|{p}|{t}" for (h, p, t) in llm_rels
-                       if p and fuzzy_gtype(h, gtype) and fuzzy_gtype(t, gtype) and (h, p, t) not in grel])
         catch = sum(1 for it in true_items if it in involved)
         rows["viol"] += len(viols); rows["chk"] += len(chk); rows["sound"] += sc
         rows["bound"] += b; rows["terr"] += te; rows["tterr"] += tterr; rows["rerr"] += rerr
         rows["fired"] += (b > 0)
-        rows["thm_n"] += 1; rows["thm_ok"] += (b <= te)
+        # Only the checkable sub-hypergraph can be compared with gold. Runtime
+        # certificate bounds still use every violation and are reported above.
+        rows["thm_n"] += 1; rows["thm_ok"] += (checkable_bound <= te)
         rows["catchable"] += catch; rows["true_items"] += len(true_items)
     return rows
 

@@ -24,22 +24,26 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "result" / "reproduction"
 
 ANALYSIS_TASKS = (
-    ("theorem_tests", "certificate.py"),
-    ("main_results", "analyze.py"),
-    ("holdout_signatures", "ablation_holdout.py"),
-    ("schema_only_signatures", "ablation_schema.py"),
-    ("cross_family_control", "analyze_glm.py"),
-    ("self_consistency", "analyze_resample.py"),
-    ("triage", "analyze_triage.py"),
+    ("theorem_tests", "certificate.py", ()),
+    ("main_results", "analyze.py", ()),
+    ("holdout_signatures", "ablation_holdout.py", ()),
+    ("schema_only_signatures", "ablation_schema.py", ()),
+    ("cross_family_control", "analyze_glm.py", ()),
+    ("revision_analyses", "analyze_revision.py", ()),
+    ("self_consistency", "analyze_resample.py", ("--all-models", "--documents", "50", "--samples", "5", "--require-complete")),
+    ("scierc_external", "analyze_scierc.py", ("--require-complete",)),
+    ("triage", "analyze_triage.py", ()),
 )
 
 EXPECTED_MARKERS = {
-    "theorem_tests": ("theorem verification: ALL PASS",),
-    "main_results": ("common evaluation set = 297", "combined:     2929/2929 = 100%"),
-    "holdout_signatures": ("checkable=3544  sound=3537  soundness=99.8%",),
-    "schema_only_signatures": ("checkable=3171  sound=3134  soundness=98.8%",),
-    "cross_family_control": ("soundness = 651/651 = 100.0%",),
-    "self_consistency": ("21/99 = 21%",),
+    "theorem_tests": ("stress test (500 random hypergraphs): PASS",),
+    "main_results": ("common evaluation set = 297", "combined:     2887/2887 = 100%"),
+    "holdout_signatures": ("checkable=3501  sound=3495  soundness=99.8%",),
+    "schema_only_signatures": ("checkable=3122  sound=3076  soundness=98.5%",),
+    "cross_family_control": ("soundness = 1085/1085 = 100.0%", "theorem   = 300/300 docs hold"),
+    "revision_analyses": ("REVISION_ANALYSIS_OK",),
+    "self_consistency": ("SELF_CONSISTENCY_ANALYSIS_OK",),
+    "scierc_external": ("SCIERC_ANALYSIS_OK",),
 }
 
 FIGURE_NAMES = (
@@ -116,10 +120,11 @@ def write_common_document_ids(output_dir: Path) -> Path:
 def run_task(
     name: str,
     script: str,
+    script_args: tuple[str, ...],
     output_dir: Path,
     environment: dict[str, str],
 ) -> dict[str, object]:
-    command = [sys.executable, str(ROOT / "code" / script)]
+    command = [sys.executable, str(ROOT / "code" / script), *script_args]
     started = time.monotonic()
     process = subprocess.run(
         command,
@@ -182,7 +187,7 @@ def main() -> None:
 
     tasks = list(ANALYSIS_TASKS)
     if not args.skip_figures:
-        tasks.append(("publication_figures", "make_figures_pub.py"))
+        tasks.append(("publication_figures", "make_figures_pub.py", ()))
 
     print("Consistency Certificates: offline reproduction")
     print(f"repository: {ROOT}")
@@ -193,8 +198,8 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="consistency-certificates-mpl-") as mpl_dir:
         environment = os.environ.copy()
         environment["MPLCONFIGDIR"] = mpl_dir
-        for name, script in tasks:
-            records.append(run_task(name, script, output_dir, environment))
+        for name, script, script_args in tasks:
+            records.append(run_task(name, script, script_args, output_dir, environment))
 
     common_ids_path = write_common_document_ids(output_dir)
 

@@ -1,0 +1,23 @@
+{
+  "holdout": {
+    "affected_documents": 38,
+    "bound": 1418,
+    "documents": 1197,
+    "filtered_bound": 1379,
+    "repeated_unsafe_edges": 55
+  },
+  "in_source": {
+    "affected_documents": 0,
+    "bound": 1163,
+    "documents": 1188,
+    "filtered_bound": 1163,
+    "repeated_unsafe_edges": 0
+  },
+  "schema_only": {
+    "affected_documents": 78,
+    "bound": 1325,
+    "documents": 1197,
+    "filtered_bound": 1241,
+    "repeated_unsafe_edges": 78
+  }
+}

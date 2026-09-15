@@ -4,7 +4,7 @@ stored at extractions/<model>/<idx>.json; resumable (existing results are skippe
 import json, os, re, time, sys, threading
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from common import build_prompt, doc_text, ROOT
+from common import build_prompt, doc_text, ROOT, TYPES
 
 MODELS = [
     "Qwen/Qwen2.5-7B-Instruct", "Qwen/Qwen2.5-14B-Instruct",
@@ -20,6 +20,9 @@ DOCS = json.load(open(os.path.join(ROOT, "data", "redocred_dev_300.json")))[:NDO
 KEY = open(os.path.expanduser("~/.siliconflow_key")).read().strip()
 API = "https://api.siliconflow.cn/v1/chat/completions"
 WORKERS = int(os.environ.get("WORKERS", "8"))
+MAX_TOKENS = int(os.environ.get("MAX_TOKENS", "3000"))
+REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", "180"))
+CONCISE_OUTPUT = os.environ.get("CONCISE_OUTPUT", "0") == "1"
 
 _lock = threading.Lock()
 _done = [0]
@@ -34,6 +37,22 @@ def cache_path(m, i):
     d = os.path.join(ROOT, "result", "extractions", safe(m))
     os.makedirs(d, exist_ok=True)
     return os.path.join(d, f"{i:04d}.json")
+
+
+def cached_result_is_usable(path):
+    """Return whether a cached extraction is valid enough to skip an API retry."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            cached = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(cached, dict) or cached.get("_error"):
+        return False
+    valid_entities = [
+        entity for entity in cached.get("entities", [])
+        if isinstance(entity, dict) and entity.get("name") and entity.get("type") in TYPES
+    ]
+    return bool(valid_entities or cached.get("relations"))
 
 
 def _parse(c):
@@ -60,11 +79,23 @@ def _parse(c):
 
 
 def call(model, text):
-    body = {"model": model, "messages": [{"role": "user", "content": build_prompt(text)}],
-            "temperature": 0.0, "max_tokens": 3000, "response_format": {"type": "json_object"}}
+    prompt = build_prompt(text)
+    if CONCISE_OUTPUT:
+        prompt += (
+            "\nReturn concise JSON only. Do not repeat an entity or relation. Use the shortest "
+            "unambiguous name from the passage for each entity. Emit at most 100 unique entities "
+            "and at most 100 unique relations."
+        )
+    body = {"model": model, "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.0, "max_tokens": MAX_TOKENS, "response_format": {"type": "json_object"}}
     for a in range(6):
         try:
-            r = requests.post(API, headers={"Authorization": f"Bearer {KEY}"}, json=body, timeout=180)
+            r = requests.post(
+                API,
+                headers={"Authorization": f"Bearer {KEY}"},
+                json=body,
+                timeout=REQUEST_TIMEOUT,
+            )
             if r.status_code in (429, 500, 502, 503):
                 time.sleep(3 + 3 * a); continue
             j = r.json()
@@ -82,16 +113,11 @@ def call(model, text):
 
 def work(model, i, doc):
     path = cache_path(model, i)
-    if os.path.exists(path):
-        try:
-            json.load(open(path)); status = "cached"
-        except Exception:
-            status = "recompute"
-    else:
-        status = "new"
+    status = "cached" if cached_result_is_usable(path) else "recompute"
     if status != "cached":
         res = call(model, doc_text(doc))
-        res["_model"] = model; res["_idx"] = i
+        res["_model"] = model; res["_idx"] = i; res["_max_tokens"] = MAX_TOKENS
+        res["_concise_output"] = CONCISE_OUTPUT
         json.dump(res, open(path, "w"), ensure_ascii=False)
         status = "err" if res.get("_error") else "ok"
     with _lock:

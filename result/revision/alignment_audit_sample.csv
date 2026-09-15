@@ -1,0 +1,68 @@
+model,document_index,title,relation,pid,head,tail,head_alignment,tail_alignment,cluster_id_checkable,legacy_checkable,document_relations
+DeepSeek-V3,287,Washington v. Texas,applies to jurisdiction,P1001,washington v texas,united states supreme court,containment_ambiguous_type,exact_unique,False,True,10
+DeepSeek-V3,265,Truth in Music Advertising,applies to jurisdiction,P1001,the truth in music advertising act,50 states,containment_unique,unmatched,False,False,9
+DeepSeek-V3,249,Irish experiment,member of,P463,the irish experiment,vfl afl clubs,containment_unique,unmatched,False,False,16
+DeepSeek-V3,48,Zakhary Lyapunov,country of origin,P495,polish invaders,poland,containment_unique,unmatched,False,False,17
+DeepSeek-V3,19,Railroad Revival Tour,performer,P175,mumford sons,this train,exact_ambiguous_type,exact_unique,False,True,15
+DeepSeek-V3,19,Railroad Revival Tour,performer,P175,mumford sons,woody guthrie,exact_ambiguous_type,exact_unique,False,True,15
+DeepSeek-V3,236,"Brigden, Ontario",has part,P527,brigden,500,exact_ambiguous_type,exact_unique,False,True,25
+DeepSeek-V3,236,"Brigden, Ontario",applies to jurisdiction,P1001,brigden,police village,exact_ambiguous_type,unmatched,False,False,25
+DeepSeek-V3,58,Beibu Gulf Economic Rim,participant in,P1344,beibu gulf economic rim,china asean cooperation,exact_unique,containment_ambiguous_type,False,True,9
+DeepSeek-V3,154,Die Haut,country of origin,P495,die haut,german,exact_unique,exact_ambiguous_type,False,True,16
+DeepSeek-V3,19,Railroad Revival Tour,participant,P710,railroad revival tour,mumford sons,exact_unique,exact_ambiguous_type,False,True,15
+DeepSeek-V3,119,Energy and Environmental Security Initiative,applies to jurisdiction,P1001,energy and environmental security initiative,u s energy policies,exact_unique,unmatched,False,False,12
+DeepSeek-V3,6,Soccer Academy,participant in,P1344,the soccer academy,professional soccer players,exact_unique,unmatched,False,False,11
+DeepSeek-V3,178,Sarah Gibb,contains administrative territorial entity,P150,library of congress,12 volumes,exact_unique,unmatched,False,False,16
+DeepSeek-V3,35,Won-yong,applies to jurisdiction,P1001,hanja,south korean government,unmatched,containment_unique,False,False,16
+DeepSeek-V3,230,Mavis Grind,participant in,P1344,otters,mavis grind,unmatched,exact_unique,False,False,14
+DeepSeek-V3,291,"They Shoot Horses, Don't They? (film)",participant in,P1344,they shoot horses don t they,23rd cannes film festival,unmatched,exact_unique,False,False,23
+DeepSeek-V3,291,"They Shoot Horses, Don't They? (film)",participant in,P1344,they shoot horses don t they,42nd academy awards,unmatched,exact_unique,False,False,23
+DeepSeek-V3,259,Quokka,member of,P463,quokka,macropod family,unmatched,unmatched,False,False,13
+DeepSeek-V3,32,Rogaland County Municipality,has part,P527,county council,47 members,unmatched,unmatched,False,False,23
+DeepSeek-V3,178,Sarah Gibb,has part,P527,12 volumes,6 named princesses,unmatched,unmatched,False,False,16
+Qwen2.5-14B,179,List of songs recorded by Rage Against the Machine,contains administrative territorial entity,P150,rage against the machine,zack de la rocha,exact_ambiguous_type,exact_unique,False,True,26
+Qwen2.5-14B,179,List of songs recorded by Rage Against the Machine,contains administrative territorial entity,P150,rage against the machine,tom morello,exact_ambiguous_type,exact_unique,False,True,26
+Qwen2.5-14B,179,List of songs recorded by Rage Against the Machine,contains administrative territorial entity,P150,rage against the machine,tim commerford,exact_ambiguous_type,exact_unique,False,True,26
+Qwen2.5-14B,155,Mehmet Çetingöz,participant in,P1344,mehmet eting z,u23 team,exact_unique,unmatched,False,False,13
+Qwen2.5-14B,170,Abdul Jabar Sabet,participant in,P1344,abdul jabar sabet,human rights organization,exact_unique,unmatched,False,False,14
+Qwen2.5-14B,196,Amos Hochstein,participant in,P1344,amos j hochstein,deputy assistant secretary of state,exact_unique,unmatched,False,False,16
+Qwen2.5-14B,187,Great South Australian Coastal Upwelling System,part of,P361,austral summer,the great south australian coastal upwelling system,unmatched,containment_unique,False,False,15
+Qwen2.5-14B,73,Can't Take My Eyes Off You,participant in,P1344,ca n t take my eyes off you,the four seasons,unmatched,exact_unique,False,False,12
+Qwen2.5-14B,73,Can't Take My Eyes Off You,participant in,P1344,ca n t take my eyes off you,bob gaudio,unmatched,exact_unique,False,False,12
+Qwen2.5-14B,73,Can't Take My Eyes Off You,participant in,P1344,ca n t take my eyes off you,bob crewe,unmatched,exact_unique,False,False,12
+Qwen2.5-32B,287,Washington v. Texas,participant in,P1344,washington v texas,united states supreme court,containment_ambiguous_type,exact_unique,False,True,6
+Qwen2.5-32B,99,Young Wild Things Tour,has part,P527,the young wild things tour,31,containment_unique,unmatched,False,False,14
+Qwen2.5-32B,190,Chachalaca,located in the administrative territorial entity,P131,chachalacas,oligocene,exact_ambiguous_type,exact_unique,False,True,10
+Qwen2.5-32B,190,Chachalaca,located in the administrative territorial entity,P131,chachalacas,40 20 mya,exact_ambiguous_type,exact_unique,False,True,10
+Qwen2.5-32B,179,List of songs recorded by Rage Against the Machine,contains administrative territorial entity,P150,rage against the machine,zack de la rocha,exact_ambiguous_type,exact_unique,False,True,12
+Qwen2.5-32B,19,Railroad Revival Tour,publication date,P577,big easy express,sxsw 2012,exact_unique,containment_ambiguous_type,False,True,15
+Qwen2.5-32B,155,Mehmet Çetingöz,participant in,P1344,mehmet eting z,u23 team,exact_unique,unmatched,False,False,10
+Qwen2.5-32B,211,William Hepburn Armstrong,participant in,P1344,william hepburn armstrong,commissioner of railroads,exact_unique,unmatched,False,False,16
+Qwen2.5-32B,175,Torrejonian,contains administrative territorial entity,P150,torrejonian,to3,exact_unique,unmatched,False,False,4
+Qwen2.5-32B,230,Mavis Grind,participant in,P1344,otters,mavis grind,unmatched,exact_unique,False,False,12
+Qwen2.5-32B,187,Great South Australian Coastal Upwelling System,contains administrative territorial entity,P150,austral summer,november,unmatched,exact_unique,False,False,9
+Qwen2.5-32B,291,"They Shoot Horses, Don't They? (film)",country of origin,P495,they shoot horses don t they,american,unmatched,exact_unique,False,False,19
+Qwen2.5-32B,187,Great South Australian Coastal Upwelling System,contains administrative territorial entity,P150,austral summer,may,unmatched,unmatched,False,False,9
+Qwen2.5-72B,287,Washington v. Texas,participant in,P1344,washington v texas,united states supreme court,containment_ambiguous_type,exact_unique,False,True,12
+Qwen2.5-72B,287,Washington v. Texas,applies to jurisdiction,P1001,united states,washington v texas,containment_unique,containment_ambiguous_type,False,True,12
+Qwen2.5-72B,202,LEC billing,country,P17,united states,client,containment_unique,unmatched,False,False,23
+Qwen2.5-72B,202,LEC billing,country,P17,united states,subscriber,containment_unique,unmatched,False,False,23
+Qwen2.5-72B,168,Mount Shinn,performer,P175,lieutenant commander conrad s gus shinn,igy reconnaissance flights,containment_unique,unmatched,False,False,22
+Qwen2.5-72B,19,Railroad Revival Tour,cast member,P161,mumford sons,big easy express,exact_ambiguous_type,exact_unique,False,True,22
+Qwen2.5-72B,179,List of songs recorded by Rage Against the Machine,member of,P463,rage against the machine,zack de la rocha,exact_ambiguous_type,exact_unique,False,True,27
+Qwen2.5-72B,179,List of songs recorded by Rage Against the Machine,member of,P463,rage against the machine,tom morello,exact_ambiguous_type,exact_unique,False,True,27
+Qwen2.5-72B,190,Chachalaca,located in the administrative territorial entity,P131,chachalacas,wooded habitats,exact_ambiguous_type,unmatched,False,False,18
+Qwen2.5-72B,19,Railroad Revival Tour,publication date,P577,big easy express,sxsw 2012,exact_unique,containment_ambiguous_type,False,True,22
+Qwen2.5-72B,137,Ahmet Kaya,country of origin,P495,ahmet kaya,kurdish,exact_unique,exact_ambiguous_type,False,True,13
+Qwen2.5-72B,154,Die Haut,country of origin,P495,die haut,german,exact_unique,exact_ambiguous_type,False,True,14
+Qwen2.5-72B,236,"Brigden, Ontario",date of birth,P569,william wharton brigden,brigden,exact_unique,exact_ambiguous_type,False,True,19
+Qwen2.5-72B,128,Kurt Tucholsky,participant in,P1344,kurt tucholsky,may 1933,exact_unique,unmatched,False,False,26
+Qwen2.5-72B,128,Kurt Tucholsky,participant in,P1344,nazis,may 1933,exact_unique,unmatched,False,False,26
+Qwen2.5-72B,211,William Hepburn Armstrong,participant in,P1344,william hepburn armstrong,commissioner of railroads,exact_unique,unmatched,False,False,27
+Qwen2.5-72B,109,Gloria Estefan albums discography,has part,P527,diamond certification,1 million copies,unmatched,containment_unique,False,False,29
+Qwen2.5-72B,129,Urgut,has part,P527,plane trees,1000 years,unmatched,containment_unique,False,False,18
+Qwen2.5-72B,63,"Navy, Army and Air Force Institutes",participant in,P1344,commissioned officers,british armed forces,unmatched,exact_unique,False,False,13
+Qwen2.5-72B,109,Gloria Estefan albums discography,participant in,P1344,dr beat,europe,unmatched,exact_unique,False,False,29
+Qwen2.5-72B,230,Mavis Grind,participant in,P1344,otters,mavis grind,unmatched,exact_unique,False,False,14
+Qwen2.5-72B,259,Quokka,member of,P463,setonix brachyurus,setonix,unmatched,unmatched,False,False,23
+Qwen2.5-72B,178,Sarah Gibb,has part,P527,12 volumes,6 named princesses,unmatched,unmatched,False,False,20

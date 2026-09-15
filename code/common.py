@@ -5,6 +5,8 @@ ROOT points to the repository root so every script works from any CWD.
 """
 import json, os, re
 
+from certificate import greedy_disjoint_lower_bound, maximum_disjoint_lower_bound
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 REL_NAME = {
@@ -64,6 +66,139 @@ def gold_maps(d):
     return etype, rel
 
 
+def gold_relation_ids(d):
+    """Gold relations keyed by entity-cluster identifiers rather than surface strings."""
+    return {(label["h"], label["r"], label["t"]) for label in d.get("labels", [])}
+
+
+def align_gold_entity(name, d):
+    """Align one emitted name to gold entity clusters with ambiguity-aware abstention.
+
+    Exact normalized aliases are preferred.  Otherwise, bidirectional containment
+    is used for strings of at least four characters and only clusters with the
+    longest matching alias are retained.  Multiple candidate clusters are safe
+    when they agree on entity type; conflicting types make the alignment
+    uncheckable instead of selecting an arbitrary first match.
+    """
+    query = norm(name)
+    aliases = [
+        {norm(mention.get("name")) for mention in cluster if norm(mention.get("name"))}
+        for cluster in d.get("vertexSet", [])
+    ]
+    candidate_ids = [index for index, names in enumerate(aliases) if query in names]
+    mode = "exact"
+
+    if not candidate_ids and len(query) >= 4:
+        scores = {}
+        for index, names in enumerate(aliases):
+            matched_lengths = [
+                len(alias)
+                for alias in names
+                if len(alias) >= 4 and (query in alias or alias in query)
+            ]
+            if matched_lengths:
+                scores[index] = max(matched_lengths)
+        if scores:
+            best = max(scores.values())
+            candidate_ids = [index for index, score in scores.items() if score == best]
+            mode = "containment"
+
+    candidate_ids = tuple(sorted(candidate_ids))
+    if not candidate_ids:
+        return {"candidate_ids": (), "gold_type": None, "status": "unmatched"}
+
+    gold_types = {
+        d["vertexSet"][index][0]["type"]
+        for index in candidate_ids
+        if d["vertexSet"][index]
+    }
+    multiplicity = "multiple" if len(candidate_ids) > 1 else "unique"
+    if len(gold_types) != 1:
+        status = f"{mode}_ambiguous_type"
+        gold_type = None
+    else:
+        status = f"{mode}_{multiplicity}"
+        gold_type = next(iter(gold_types))
+    return {
+        "candidate_ids": candidate_ids,
+        "gold_type": gold_type,
+        "status": status,
+    }
+
+
+def gold_error_records(ext, d):
+    """Return gold-verifiable emitted errors and alignment diagnostics.
+
+    Unmatched or type-ambiguous entities are reported but are not silently
+    counted as type errors.  A relation is checkable when both endpoint names
+    map to at least one gold cluster; it is spurious only if no candidate cluster
+    pair carries the emitted relation.
+    """
+    from collections import Counter
+
+    entity_types = {
+        norm(entity["name"]): entity["type"]
+        for entity in ext.get("entities", [])
+        if isinstance(entity, dict)
+        and entity.get("type") in TYPES
+        and entity.get("name")
+    }
+    alignments = {name: align_gold_entity(name, d) for name in entity_types}
+    alignment_counts = Counter(alignment["status"] for alignment in alignments.values())
+    errors = []
+    for name, emitted_type in entity_types.items():
+        alignment = alignments[name]
+        if alignment["gold_type"] is not None and alignment["gold_type"] != emitted_type:
+            errors.append({
+                "item": f"E:{name}",
+                "category": "entity_type",
+                "name": name,
+                "emitted_type": emitted_type,
+                "gold_type": alignment["gold_type"],
+                "alignment": alignment["status"],
+            })
+
+    relations = {
+        (norm(relation.get("head")), NAME2PID.get(relation.get("relation")),
+         norm(relation.get("tail")))
+        for relation in ext.get("relations", [])
+        if isinstance(relation, dict) and NAME2PID.get(relation.get("relation"))
+    }
+    gold_relations = gold_relation_ids(d)
+    relation_checkable = relation_uncheckable = 0
+    for head, pid, tail in relations:
+        head_alignment = alignments.get(head) or align_gold_entity(head, d)
+        tail_alignment = alignments.get(tail) or align_gold_entity(tail, d)
+        if not head_alignment["candidate_ids"] or not tail_alignment["candidate_ids"]:
+            relation_uncheckable += 1
+            continue
+        relation_checkable += 1
+        present = any(
+            (head_id, pid, tail_id) in gold_relations
+            for head_id in head_alignment["candidate_ids"]
+            for tail_id in tail_alignment["candidate_ids"]
+        )
+        if not present:
+            errors.append({
+                "item": f"R:{head}|{pid}|{tail}",
+                "category": "relation_spurious",
+                "head": head,
+                "pid": pid,
+                "tail": tail,
+                "head_alignment": head_alignment["status"],
+                "tail_alignment": tail_alignment["status"],
+            })
+
+    return {
+        "errors": errors,
+        "alignment_counts": dict(alignment_counts),
+        "relation_checkable": relation_checkable,
+        "relation_uncheckable": relation_uncheckable,
+        "n_emitted_entities": len(entity_types),
+        "n_emitted_relations": len(relations),
+    }
+
+
 def find_violations(ext, sigs, constraint="empirical"):
     """Relation-signature violations, each as a hyperedge {E:h, E:t, R:h|r|t}."""
     etype = {norm(e["name"]): e["type"] for e in ext.get("entities", [])
@@ -113,12 +248,8 @@ def find_functional_violations(ext):
 
 
 def disjoint_lower_bound(hyperedges):
-    """Greedy vertex-disjoint hyperedge count: a valid error lower bound."""
-    used, b = set(), 0
-    for he in hyperedges:
-        if not (he & used):
-            b += 1; used |= he
-    return b
+    """Backward-compatible alias for the exact hypergraph matching number."""
+    return maximum_disjoint_lower_bound(hyperedges)
 
 
 def fuzzy_gtype(name, gtype):
@@ -134,15 +265,36 @@ def fuzzy_gtype(name, gtype):
 
 
 def validate_against_gold(viols, etype, d):
-    """Per-violation soundness check against gold (validation only)."""
-    gtype, grel = gold_maps(d)
+    """Per-violation soundness check using ambiguity-aware gold cluster IDs."""
+    grel = gold_relation_ids(d)
     for v in viols:
-        gh, gt = fuzzy_gtype(v["h"], gtype), fuzzy_gtype(v["t"], gtype)
+        head = align_gold_entity(v["h"], d)
+        tail = align_gold_entity(v["t"], d)
+        gh, gt = head["gold_type"], tail["gold_type"]
         v["gh"], v["gt"] = gh, gt
+        v["gold_head_ids"] = head["candidate_ids"]
+        v["gold_tail_ids"] = tail["candidate_ids"]
+        v["head_alignment"] = head["status"]
+        v["tail_alignment"] = tail["status"]
         v["h_wrong"] = gh is not None and v["ht"] != gh
         v["t_wrong"] = gt is not None and v["tt"] != gt
-        v["rel_spurious"] = (v["h"], v["pid"], v["t"]) not in grel
         v["checkable"] = gh is not None and gt is not None
-        v["sound"] = bool(v["h_wrong"] or v["t_wrong"] or v["rel_spurious"])
-    true_type_err = sum(1 for n, ty in etype.items() if n in gtype and gtype[n] != ty)
+        v["rel_spurious"] = bool(
+            v["checkable"]
+            and not any(
+                (head_id, v["pid"], tail_id) in grel
+                for head_id in head["candidate_ids"]
+                for tail_id in tail["candidate_ids"]
+            )
+        )
+        v["sound"] = bool(
+            v["checkable"]
+            and (v["h_wrong"] or v["t_wrong"] or v["rel_spurious"])
+        )
+    true_type_err = sum(
+        1
+        for name, emitted_type in etype.items()
+        if (aligned := align_gold_entity(name, d))["gold_type"] is not None
+        and aligned["gold_type"] != emitted_type
+    )
     return viols, true_type_err

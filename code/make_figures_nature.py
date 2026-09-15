@@ -10,6 +10,7 @@ import os
 from collections import Counter
 
 import numpy as np
+from scipy.stats import beta, spearmanr
 
 
 def generate(g):
@@ -190,13 +191,16 @@ def generate(g):
     if recurrence:
         counts = [recurrence.count(i) for i in range(k_decodes + 1)]
         stable = sum(counts[3:]); total = len(recurrence)
+        ci_low = 100 * beta.ppf(0.025, stable, total - stable + 1)
+        ci_high = 100 * beta.ppf(0.975, stable + 1, total - stable)
         fig, ax = plt.subplots(figsize=(3.5, 2.35))
         ax.bar(range(k_decodes + 1), counts, width=.62,
                color=[C["valid"]] * 3 + [C["error"]] * 3)
         ymax = max(counts) * 1.23
         ax.plot([2.7, 2.7, 5.3, 5.3], [ymax*.82, ymax*.88, ymax*.88, ymax*.82],
                 color=C["error"], lw=.7)
-        ax.text(4, ymax*.91, f"pilot: {stable}/{total} (95% CI 13.6–30.6%)",
+        ax.text(4, ymax*.91,
+                f"{stable}/{total} (95% CI {ci_low:.1f}–{ci_high:.1f}%)",
                 ha="center", fontsize=6.1, color=C["error"])
         ax.set_xticks(range(k_decodes + 1))
         ax.set_xlabel(f"Recurrence across {k_decodes} additional decodes")
@@ -222,14 +226,13 @@ def generate(g):
     model = "deepseek-ai/DeepSeek-V3"
     bounds, errors = D[model]["per_b"], D[model]["per_e"]
     if len(bounds) > 5:
-        rank_b = np.argsort(np.argsort(bounds)); rank_e = np.argsort(np.argsort(errors))
-        rho = np.corrcoef(rank_b, rank_e)[0, 1]
+        rho = float(spearmanr(bounds, errors).statistic)
         fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.15, 2.55),
                                      gridspec_kw={"wspace": .34})
         jitter = np.asarray(bounds) + np.random.RandomState(0).uniform(-.16, .16,
                                                                        len(bounds))
         a1.scatter(jitter, errors, s=9, alpha=.42, color=C["fire"], edgecolor="none",
-                   rasterized=True)
+                   rasterized=False)
         a1.set_xlabel("Certificate bound (per doc)"); a1.set_ylabel("True error count")
         a1.text(.98, .96, f"Spearman ρ = {rho:.2f}", transform=a1.transAxes,
                 ha="right", va="top", fontsize=6.3)

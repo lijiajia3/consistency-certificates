@@ -30,6 +30,7 @@
   <text x="136" y="120" class="body">unlabelled text</text>
   <text x="136" y="143" class="small" fill="#555555">no gold annotations</text>
   <line data-graph-role="edge" x1="228" y1="116" x2="307" y2="116" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>
+  <polygon points="307,116 297,111 297,121" fill="#2d63b8"/>
   <text x="267" y="105" text-anchor="middle" class="small" fill="#2d63b8">prompt</text>
   <rect data-graph-role="node" x="316" y="60" width="212" height="112" fill="#ffffff" stroke="#222222" stroke-width="1.3"/>
   <rect x="316" y="60" width="212" height="27" fill="#edf3fb" stroke="#222222" stroke-width="1.1"/>
@@ -38,6 +39,7 @@
   <text x="422" y="126" text-anchor="middle" font-size="15" font-weight="700" style="fill:#ffffff">ONE DECODE</text>
   <text x="422" y="157" text-anchor="middle" class="small" fill="#555555">no logits or internals</text>
   <line data-graph-role="edge" x1="528" y1="116" x2="607" y2="116" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>
+  <polygon points="607,116 597,111 597,121" fill="#2d63b8"/>
   <text x="567" y="105" text-anchor="middle" class="small" fill="#2d63b8">extract</text>
   <rect data-graph-role="node" x="616" y="60" width="546" height="112" fill="#ffffff" stroke="#222222" stroke-width="1.3"/>
   <rect x="616" y="60" width="546" height="27" fill="#edf3fb" stroke="#222222" stroke-width="1.1"/>
@@ -46,6 +48,7 @@
   <text x="700" y="130" class="body">IOC:ORG, 1894:TIME</text>
   <text x="636" y="155" class="body"><tspan font-weight="700">Relations:</tspan> located-in, capital-of, date-of-birth, …</text>
   <path data-graph-role="edge" d="M889,172 V211 H276 V232" fill="none" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>
+  <polygon points="276,232 271,222 281,222" fill="#2d63b8"/>
   <rect data-graph-role="container" x="18" y="232" width="516" height="398" fill="#ffffff" stroke="#222222" stroke-width="1.5"/>
   <rect x="18" y="232" width="516" height="34" fill="#edf3fb" stroke="#222222" stroke-width="1.1"/>
   <text x="276" y="255" text-anchor="middle" class="head">(a) TYPE-SIGNATURE CHECK</text>
@@ -57,6 +60,7 @@
   <text x="444" y="332" text-anchor="middle" class="label">Mediaș</text>
   <text x="444" y="352" text-anchor="middle" class="small" fill="#333333">[LOC]</text>
   <line data-graph-role="edge" x1="174" y1="337" x2="369" y2="337" stroke="#e56b21" stroke-width="2.1" marker-end="url(#orange-arrow)"/>
+  <polygon points="369,337 359,332 359,342" fill="#e56b21"/>
   <rect x="205" y="320" width="132" height="23" fill="#ffffff"/>
   <text x="271" y="337" text-anchor="middle" font-size="13.5" font-weight="700" fill="#b74c13">×  located-in</text>
   <rect data-graph-role="node" x="42" y="405" width="132" height="54" fill="#ffffff" stroke="#e56b21" stroke-width="2.0"/>
@@ -66,6 +70,7 @@
   <text x="444" y="427" text-anchor="middle" class="label">China</text>
   <text x="444" y="447" text-anchor="middle" class="small" fill="#333333">[LOC]</text>
   <line data-graph-role="edge" x1="174" y1="432" x2="369" y2="432" stroke="#e56b21" stroke-width="2.1" marker-end="url(#orange-arrow)"/>
+  <polygon points="369,432 359,427 359,437" fill="#e56b21"/>
   <rect x="205" y="415" width="132" height="23" fill="#ffffff"/>
   <text x="271" y="432" text-anchor="middle" font-size="13.5" font-weight="700" fill="#b74c13">×  capital-of</text>
   <rect data-graph-role="node" x="42" y="500" width="132" height="54" fill="#ffffff" stroke="#e56b21" stroke-width="2.0"/>
@@ -75,16 +80,19 @@
   <text x="444" y="522" text-anchor="middle" class="label">1894</text>
   <text x="444" y="542" text-anchor="middle" class="small" fill="#333333">[TIME]</text>
   <line data-graph-role="edge" x1="174" y1="527" x2="369" y2="527" stroke="#e56b21" stroke-width="2.1" marker-end="url(#orange-arrow)"/>
+  <polygon points="369,527 359,522 359,532" fill="#e56b21"/>
   <rect x="205" y="510" width="132" height="23" fill="#ffffff"/>
   <text x="271" y="527" text-anchor="middle" font-size="13.5" font-weight="700" fill="#b74c13">×  date-of-birth</text>
   <line x1="42" y1="584" x2="73" y2="584" stroke="#e56b21" stroke-width="2.1"/>
   <text x="82" y="589" class="small" fill="#b74c13">schema violation</text>
   <text x="509" y="611" text-anchor="end" class="small" font-style="italic">3 violated constraints</text>
   <line data-graph-role="edge" x1="534" y1="431" x2="558" y2="431" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>
+  <polygon points="558,431 548,426 548,436" fill="#2d63b8"/>
   <rect data-graph-role="container" x="562" y="232" width="336" height="398" fill="#ffffff" stroke="#222222" stroke-width="1.5"/>
   <rect x="562" y="232" width="336" height="34" fill="#edf3fb" stroke="#222222" stroke-width="1.1"/>
-  <text x="730" y="255" text-anchor="middle" class="head">(b) CONFLICT MATCHING</text>
-  <text x="730" y="286" text-anchor="middle" class="small">Each conflict edge requires at least one erroneous endpoint</text>
+  <text x="730" y="255" text-anchor="middle" class="head">(b) HYPEREDGE PACKING</text>
+  <text x="730" y="283" text-anchor="middle" class="small">Each enclosure is a conflict hyperedge;</text>
+  <text x="730" y="299" text-anchor="middle" class="small">at least one enclosed item must be wrong</text>
   <rect data-graph-role="container" x="577" y="307" width="86" height="212" fill="#f7faff" stroke="#7fa3d8" stroke-width="1.1"/>
   <line data-graph-role="edge" x1="620" y1="370" x2="620" y2="392" stroke="#e56b21" stroke-width="2.5"/>
   <line data-graph-role="edge" x1="620" y1="428" x2="620" y2="450" stroke="#e56b21" stroke-width="2.5"/>
@@ -119,9 +127,10 @@
   <text x="840" y="323" text-anchor="middle" class="small">IOC</text>
   <text x="840" y="506" text-anchor="middle" class="small">date-of-birth</text>
   <path d="M588,540 V552 H872 V540" fill="none" stroke="#2d63b8" stroke-width="1.6"/>
-  <text x="730" y="577" text-anchor="middle" class="math">maximum matching  |M| = 3</text>
-  <text x="730" y="605" text-anchor="middle" class="small" fill="#2d63b8">three vertex-disjoint conflict edges</text>
+  <text x="730" y="577" text-anchor="middle" class="math">maximum disjoint packing  |M| = 3</text>
+  <text x="730" y="605" text-anchor="middle" class="small" fill="#2d63b8">three vertex-disjoint conflict hyperedges</text>
   <line data-graph-role="edge" x1="898" y1="431" x2="922" y2="431" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>
+  <polygon points="922,431 912,426 912,436" fill="#2d63b8"/>
   <rect data-graph-role="container" x="926" y="232" width="256" height="398" fill="#ffffff" stroke="#222222" stroke-width="1.5"/>
   <rect x="926" y="232" width="256" height="34" fill="#edf3fb" stroke="#222222" stroke-width="1.1"/>
   <text x="1054" y="255" text-anchor="middle" class="head">(c) CERTIFICATE</text>

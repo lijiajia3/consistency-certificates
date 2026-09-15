@@ -5,16 +5,17 @@
 This repository contains the code, cached model outputs, and analysis scripts behind the paper
 *"Consistency Certificates: Gold-Free Error Bounds Under Valid Constraints for Black-Box Large
 Language Model Information Extraction"* (IEEE Access, under review). Every number in the paper is
-reproducible offline from the cached data — no API key is needed to reproduce the results.
+reproducible offline from the cached data; no API key is needed to reproduce the results.
 
 **Public code:** [github.com/lijiajia3/consistency-certificates](https://github.com/lijiajia3/consistency-certificates)
 
 A *consistency certificate* audits a black-box extractor's own output. When the output violates a
 hard type-signature constraint (for example, a `date-of-birth` relation whose head is not a person),
 it is internally self-contradictory, so **at least one extracted item must be wrong if the constraint
-is valid**. The size of a maximum matching in the resulting conflict graph gives a **conditional lower bound** on the
-number of errors, computed from a **single decode with no gold reference**. The combinatorial bound is a classical
-result from database repair and consistent query answering; the contribution here is its transfer to
+is valid**. Each violation is a hyperedge containing the emitted items that cannot all be correct. The
+maximum number of vertex-disjoint conflict hyperedges gives a **conditional lower bound** on the
+number of errors, computed from a **single decode with no gold reference**. The packing–hitting-set inequality is a classical
+result from database repair and consistent query answering; the contribution here is its operational transfer to
 black-box, document-level LLM information extraction, plus a multi-model, multi-source empirical
 characterization of what it can and cannot certify.
 
@@ -23,15 +24,15 @@ characterization of what it can and cannot certify.
 ![Consistency-certificate workflow from black-box extraction to a conditional error lower bound](result/figs/F1_concept.png)
 
 *Figure 1: A single black-box decode is checked against hard constraints; under valid constraints,
-conflict matching turns the resulting violations into a conditional, gold-free error floor.*
+disjoint hyperedge packing turns the resulting violations into a conditional, gold-free error floor.*
 
 1. **Extract.** A black-box LLM is prompted (JSON mode, temperature 0) to emit typed entities and
-   relations from a document — one decode, output text only.
+   relations from a document using one decode and output text only.
 2. **Check.** Each emitted relation is checked against the *hard type-signature* its relation admits
    (e.g. `located-in` requires a `LOC`/`ORG` head). A violation is internally self-contradictory, so
-   the output is certainly wrong somewhere.
-3. **Certify.** Under valid constraints, a maximum-cardinality matching of the conflict graph is a
-   **sound lower bound** on the number of wrong items — no gold labels, no model internals, no resampling.
+   at least one of the implicated items is wrong.
+3. **Certify.** Under valid constraints, an exact maximum packing of vertex-disjoint conflict hyperedges is a
+   **sound lower bound** on the number of wrong items without gold labels, model internals, or resampling.
 4. **Compose.** The certificate covers errors that are *internally inconsistent*; it complements
    self-consistency (which misses stable, self-consistent errors), precision-side signals, and
    recall-side coverage estimates.
@@ -40,13 +41,15 @@ conflict matching turns the resulting violations into a conditional, gold-free e
 
 | Setting | Metric | Value |
 |---|---|---|
-| Hold-out signatures (disjoint document split) | out-of-sample soundness | **99.8%** (3537 / 3544; 95% CI 99.59–99.92%) |
-| Schema-only signatures (Wikidata semantics, **zero corpus**) | soundness | **98.8%** (3134 / 3171; 95% CI 98.40–99.18%) |
-| In-source diagnostic (4 models, empirical + definitional) | observed false positives | **0 / 2929**; one-sided 95% upper bound **0.10%** |
-| Cross-architecture control (GLM-4-32B) | observed false positives | **0 / 651**; one-sided 95% upper bound **0.46%** |
+| Hold-out signatures (disjoint document split) | out-of-sample soundness | **99.8%** (3495 / 3501; exact 95% CI 99.63–99.94%) |
+| Schema-only signatures (Wikidata semantics, **zero corpus**) | soundness | **98.5%** (3076 / 3122; exact 95% CI 98.04–98.92%) |
+| Independent SciERC corpus | soundness | **100%** (134 / 134; exact 95% CI 97.28–100%) |
+| In-source diagnostic (4 models, empirical + definitional) | observed false positives | **0 / 2887**; one-sided 95% upper bound **0.10%** |
+| Cross-architecture control (GLM-4-32B) | observed false positives | **0 / 1085** over 300/300 valid documents |
 | Firing rate (empirical signatures) | documents with a non-zero bound | **66–73%** |
-| Detectable class | share of gold errors the certificate can see | **22–24%** |
-| Self-consistency pilot | certified errors that recur across K=5 decodes | **21 / 99 = 21.2%** (95% CI 13.6–30.6%) |
+| Detectable class | share of gold-verifiable emitted errors participating in conflicts | **24.1–25.2%** |
+| Qwen2.5-32B self-consistency | certified errors recurring in at least 3 of 5 decodes | **21 / 95 = 22.1%** (exact 95% CI 14.2–31.8%) |
+| Five-model self-consistency | stable certified-error range (50 documents/model, 5 decodes) | **13.9–39.9%** (14B 13.9%, 32B 22.1%, 72B 35.3%, DeepSeek 39.9%, GLM 19.8%) |
 | Weak-model cliff | Qwen2.5-7B valid structured output | **5%** |
 
 ![Valid-output rate, certificate firing rate, and soundness across the model-capability gradient](result/figs/F2_gradient.png)
@@ -58,19 +61,20 @@ usable extractor contains a gold-measured error, and firing is 66–73%.*
 |:---:|:---:|
 | ![Checkable violations under relation-signature and definitional constraints](result/figs/F3_soundness.png) | ![Certifiable and internally consistent shares of gold-measured errors](result/figs/F6_detectable.png) |
 
-*Figures 3 and 6: No false positive was observed among 2,929 checkable in-source violations
+*Figures 3 and 6: No false positive was observed among 2,887 checkable in-source violations
 (one-sided 95% upper bound 0.10%); by construction, the certificate exposes only the internally
-inconsistent 22–24% of gold-measured errors.*
+inconsistent 24.1–25.2% of gold-verifiable emitted errors.*
 
 Evaluation runs on **297 Re-DocRED documents** on which all four usable extractors produce valid
 structured output. DeepSeek-V3 was re-queried over the full 300-document dev split (299 valid
 outputs, one empty), so no extractor's coverage is partial in the released data.
 
-Observed soundness is **99.8%** for disjoint-document signatures and **98.8%** for a fully
-corpus-independent schema. The in-source 0/2929 result shares an annotation family between
+Observed soundness is **99.8%** for disjoint-document signatures, **98.5%** for a fully
+corpus-independent schema, and **100%** for 134 checkable violations on independently annotated
+SciERC. The in-source 0/2887 result shares an annotation family between
 empirical signature construction and validation, so it is not an independent transfer estimate. The theorem
-(`#errors ≥ maximum matching`) holds on every document and is separately stress-tested on 2000
-random conflict graphs.
+(`#errors ≥ maximum vertex-disjoint hyperedge packing`) holds on every document and the exact
+solver is separately checked against exhaustive enumeration on 500 random conflict hypergraphs.
 
 ![Per-document certificate bound and review-prioritization curve](result/figs/F9_triage.png)
 
@@ -82,15 +86,14 @@ available in [`result/figs/`](result/figs/).
 ## Reproduce
 
 The cached extractions are included, so every number in the paper can be recomputed offline without
-querying any API. The complete paper workflow takes one command after setup:
+querying any API. The paper workflow takes one command after setup:
 
-The exact evaluated implementation and cached-output snapshot is commit
-[`c3adccfc75c9fd818128dc88bfbc65777c2002e3`](https://github.com/lijiajia3/consistency-certificates/commit/c3adccfc75c9fd818128dc88bfbc65777c2002e3).
 The unabridged extraction prompt (including the ordered 18-relation list) is generated by
-`build_prompt` in `code/common.py`. Gold alignment is implemented by `fuzzy_gtype`: lowercase and
-alphanumeric normalization, followed by exact matching and then bidirectional containment for
-names of at least four characters. Re-DocRED is identified by DOI
+`build_prompt` in `code/common.py`. Gold alignment uses ambiguity-aware entity-cluster identifiers:
+normalized exact aliases, best containment, retention of tied candidates, and abstention when their
+gold types conflict. Re-DocRED is identified by DOI
 [`10.18653/v1/2022.emnlp-main.580`](https://doi.org/10.18653/v1/2022.emnlp-main.580).
+SciERC is identified by DOI [`10.18653/v1/D18-1360`](https://doi.org/10.18653/v1/D18-1360).
 
 ```bash
 # Setup
@@ -109,19 +112,23 @@ titles (`common_document_ids.json`), and a machine-readable environment manifest
 Individual components can also be run separately:
 
 ```bash
-# Theorem unit test + 2000-graph stress test
+# Theorem unit tests + 500-random-hypergraph exhaustive cross-check
 python3 code/certificate.py
 
-# Main results table (0 observed false positives in 2929 checks, firing, detectable class)
+# Main results table (0 observed false positives in 2887 checks, firing, detectable class)
 python3 code/analyze.py
 
-# Soundness ablations (99.8% hold-out, 98.8% schema-only)
+# Soundness ablations (99.8% hold-out, 98.5% schema-only)
 python3 code/ablation_holdout.py
 python3 code/ablation_schema.py
 
-# Cross-architecture control (0/651 observed false positives) and 99-error self-consistency pilot
+# Cross-architecture control and multi-model self-consistency analysis
 python3 code/analyze_glm.py
 python3 code/analyze_resample.py
+
+# Reviewer-2 robustness analyses and independent SciERC evaluation
+python3 code/analyze_revision.py
+python3 code/analyze_scierc.py --require-complete
 
 # Triage correlation and figure regeneration
 python3 code/analyze_triage.py
@@ -165,16 +172,18 @@ consistency_certificates/
 ├── code/                   # all analysis scripts (paths resolve relative to repo root)
 │   ├── common.py           # shared constants, prompt, violations, gold-free bound
 │   ├── audit_output.py     # CLI: audit one new extraction and return a certificate
-│   ├── certificate.py      # theorem code + 2000-graph stress test (matching / vertex cover)
+│   ├── certificate.py      # exact hypergraph packing + exhaustive randomized cross-check
 │   ├── reproduce_all.py    # one-command offline reproduction + per-task logs and manifest
 │   ├── run_extractions.py  # concurrent, cached black-box extraction (SiliconFlow API)
 │   ├── analyze.py          # main results table (soundness, firing, detectable class)
 │   ├── run_resample.py     # E5: K=5 stochastic decodes at T=0.7
-│   ├── analyze_resample.py # E5 analysis: self-consistency overlap
+│   ├── analyze_resample.py # multi-model self-consistency overlap
+│   ├── analyze_revision.py # robustness, tightness, taxonomy, and review-budget analyses
+│   ├── analyze_scierc.py   # independent-corpus evaluation
 │   ├── analyze_triage.py   # E6: per-document bound vs true error count (Spearman)
 │   ├── analyze_glm.py      # GLM-4-32B cross-architecture metrics
 │   ├── ablation_holdout.py # two-fold hold-out signature ablation (99.8%)
-│   ├── ablation_schema.py  # schema-only (zero-corpus) signature ablation (98.8%)
+│   ├── ablation_schema.py  # schema-only (zero-corpus) signature ablation (98.5%)
 │   ├── pilot.py            # minimal go/no-go pilot (15 docs, needs API key)
 │   ├── make_figures.py     # legacy figures (gradient, self-consistency, triage)
 │   ├── make_figure1_svg.py # editable IEEE-style concept schematic (F1)
@@ -182,10 +191,11 @@ consistency_certificates/
 │   └── make_figures_pub.py # publication figures F1-F11 (svg + pdf + png)
 ├── data/                   # input data
 │   ├── relations.json      # empirical (head-type, tail-type) signatures for 18 relations
-│   └── redocred_dev_{15,50,100,300}.json   # Re-DocRED dev splits (gold for validation only)
+│   ├── redocred_dev_{15,50,100,300}.json   # Re-DocRED dev splits (gold for validation only)
+│   └── scierc/              # official processed train/dev/test data and source metadata
 ├── result/                 # all outputs
 │   ├── extractions/        # cached model outputs, one JSON per (model, document)
-│   ├── resample/           # E5 cached stochastic decodes (Qwen2.5-32B)
+│   ├── resample/           # cached stochastic decodes for all usable primary models
 │   ├── figs/               # generated figures (.pdf, .svg, .png)
 │   └── RESULTS.md          # results summary
 ├── README.md
@@ -193,15 +203,16 @@ consistency_certificates/
 └── LICENSE
 ```
 
-The manuscript LaTeX source is kept in a separate private location and is not part of this code
-repository.
+The revised manuscript source is in `paper/`; point-by-point response material is in `revision/`.
 
 ## Data and models
 
-- **Dataset:** [Re-DocRED](https://github.com/tonytan48/Re-DocRED) validation split. Gold
+- **Datasets:** [Re-DocRED](https://github.com/tonytan48/Re-DocRED) validation split and
+  [SciERC](https://nlp.cs.washington.edu/sciIE/). Gold
   annotations are used only to *validate* the certificate, never to run it.
 - **Models (via SiliconFlow):** Qwen2.5-{7B, 14B, 32B, 72B}-Instruct, DeepSeek-V3, and
-  GLM-4-32B-0414 as a cross-architecture control. All queried black-box in JSON mode at temperature 0.
+  GLM-4-32B-0414 as a cross-architecture control. We queried every model as a black box in JSON mode
+  at temperature 0.
 - **Constraints:** relation type signatures (empirical and definitional), functional-relation
   consistency, and a schema-only variant derived from Wikidata property semantics with no corpus.
   Functional constraints are reported as a separate firing-only analysis in the paper; they are not

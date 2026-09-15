@@ -6,6 +6,8 @@ and a restrained blue/orange signal language.  This keeps the figure legible
 at two-column width and makes every element editable.
 """
 from pathlib import Path
+import shutil
+import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +53,7 @@ def make_svg(path: Path) -> None:
     add('  <text x="136" y="143" class="small" fill="#555555">no gold annotations</text>')
 
     add('  <line data-graph-role="edge" x1="228" y1="116" x2="307" y2="116" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>')
+    add('  <polygon points="307,116 297,111 297,121" fill="#2d63b8"/>')
     add('  <text x="267" y="105" text-anchor="middle" class="small" fill="#2d63b8">prompt</text>')
 
     add('  <rect data-graph-role="node" x="316" y="60" width="212" height="112" fill="#ffffff" stroke="#222222" stroke-width="1.3"/>')
@@ -61,6 +64,7 @@ def make_svg(path: Path) -> None:
     add('  <text x="422" y="157" text-anchor="middle" class="small" fill="#555555">no logits or internals</text>')
 
     add('  <line data-graph-role="edge" x1="528" y1="116" x2="607" y2="116" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>')
+    add('  <polygon points="607,116 597,111 597,121" fill="#2d63b8"/>')
     add('  <text x="567" y="105" text-anchor="middle" class="small" fill="#2d63b8">extract</text>')
 
     add('  <rect data-graph-role="node" x="616" y="60" width="546" height="112" fill="#ffffff" stroke="#222222" stroke-width="1.3"/>')
@@ -72,6 +76,7 @@ def make_svg(path: Path) -> None:
 
     # Downstream direction from extraction into the certificate pipeline.
     add('  <path data-graph-role="edge" d="M889,172 V211 H276 V232" fill="none" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>')
+    add('  <polygon points="276,232 271,222 281,222" fill="#2d63b8"/>')
 
     # II-A. TYPE-SIGNATURE CHECK
     add('  <rect data-graph-role="container" x="18" y="232" width="516" height="398" fill="#ffffff" stroke="#222222" stroke-width="1.5"/>')
@@ -94,6 +99,7 @@ def make_svg(path: Path) -> None:
         entity_box(42, y, left, ltyp, True)
         entity_box(378, y, right, rtyp, False)
         add(f'  <line data-graph-role="edge" x1="174" y1="{y + 27}" x2="369" y2="{y + 27}" stroke="#e56b21" stroke-width="2.1" marker-end="url(#orange-arrow)"/>')
+        add(f'  <polygon points="369,{y + 27} 359,{y + 22} 359,{y + 32}" fill="#e56b21"/>')
         add(f'  <rect x="205" y="{y + 10}" width="132" height="23" fill="#ffffff"/>')
         add(f'  <text x="271" y="{y + 27}" text-anchor="middle" font-size="13.5" font-weight="700" fill="#b74c13">×  {rel}</text>')
     add('  <line x1="42" y1="584" x2="73" y2="584" stroke="#e56b21" stroke-width="2.1"/>')
@@ -102,12 +108,14 @@ def make_svg(path: Path) -> None:
 
     # A -> B
     add('  <line data-graph-role="edge" x1="534" y1="431" x2="558" y2="431" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>')
+    add('  <polygon points="558,431 548,426 548,436" fill="#2d63b8"/>')
 
-    # II-B. CONFLICT GRAPH AND MAXIMUM MATCHING
+    # II-B. CONFLICT HYPERGRAPH AND DISJOINT PACKING
     add('  <rect data-graph-role="container" x="562" y="232" width="336" height="398" fill="#ffffff" stroke="#222222" stroke-width="1.5"/>')
     add('  <rect x="562" y="232" width="336" height="34" fill="#edf3fb" stroke="#222222" stroke-width="1.1"/>')
-    add('  <text x="730" y="255" text-anchor="middle" class="head">(b) CONFLICT MATCHING</text>')
-    add('  <text x="730" y="286" text-anchor="middle" class="small">Each conflict edge requires at least one erroneous endpoint</text>')
+    add('  <text x="730" y="255" text-anchor="middle" class="head">(b) HYPEREDGE PACKING</text>')
+    add('  <text x="730" y="283" text-anchor="middle" class="small">Each enclosure is a conflict hyperedge;</text>')
+    add('  <text x="730" y="299" text-anchor="middle" class="small">at least one enclosed item must be wrong</text>')
 
     for cx, eid, top, bottom in [
         (620, '1', 'Olympics', 'located-in'),
@@ -126,11 +134,12 @@ def make_svg(path: Path) -> None:
         add(f'  <text x="{cx}" y="323" text-anchor="middle" class="small">{top}</text>')
         add(f'  <text x="{cx}" y="506" text-anchor="middle" class="small">{bottom}</text>')
     add('  <path d="M588,540 V552 H872 V540" fill="none" stroke="#2d63b8" stroke-width="1.6"/>')
-    add('  <text x="730" y="577" text-anchor="middle" class="math">maximum matching  |M| = 3</text>')
-    add('  <text x="730" y="605" text-anchor="middle" class="small" fill="#2d63b8">three vertex-disjoint conflict edges</text>')
+    add('  <text x="730" y="577" text-anchor="middle" class="math">maximum disjoint packing  |M| = 3</text>')
+    add('  <text x="730" y="605" text-anchor="middle" class="small" fill="#2d63b8">three vertex-disjoint conflict hyperedges</text>')
 
     # B -> C
     add('  <line data-graph-role="edge" x1="898" y1="431" x2="922" y2="431" stroke="#2d63b8" stroke-width="2.2" marker-end="url(#blue-arrow)"/>')
+    add('  <polygon points="922,431 912,426 912,436" fill="#2d63b8"/>')
 
     # II-C. CERTIFICATE
     add('  <rect data-graph-role="container" x="926" y="232" width="256" height="398" fill="#ffffff" stroke="#222222" stroke-width="1.5"/>')
@@ -158,23 +167,52 @@ def make_svg(path: Path) -> None:
 
 def write_assets(out_dir: Path = OUT) -> None:
     """Write the editable SVG plus print and preview exports."""
-    try:
-        import cairosvg
-    except ImportError as exc:
-        raise RuntimeError(
-            "Figure 1 export needs CairoSVG (pip install cairosvg)."
-        ) from exc
-
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     svg_path = out_dir / 'F1_concept.svg'
     make_svg(svg_path)
-    cairosvg.svg2pdf(url=str(svg_path), write_to=str(out_dir / 'F1_concept.pdf'))
-    cairosvg.svg2png(
-        url=str(svg_path),
-        write_to=str(out_dir / 'F1_concept.png'),
-        output_width=2400,
-        output_height=1300,
+    try:
+        import cairosvg
+    except (ImportError, OSError):
+        cairosvg = None
+
+    if cairosvg is not None:
+        cairosvg.svg2pdf(url=str(svg_path), write_to=str(out_dir / 'F1_concept.pdf'))
+        cairosvg.svg2png(
+            url=str(svg_path),
+            write_to=str(out_dir / 'F1_concept.png'),
+            output_width=2400,
+            output_height=1300,
+        )
+        return
+
+    # CairoSVG needs a system Cairo library on macOS. svglib/reportlab keeps
+    # the publication PDF vector instead of silently degrading it to a bitmap.
+    try:
+        from reportlab.graphics import renderPDF
+        from svglib.svglib import svg2rlg
+    except ImportError:
+        renderPDF = None
+
+    if renderPDF is not None:
+        drawing = svg2rlg(str(svg_path))
+        if drawing is None:
+            raise RuntimeError(f"Could not parse {svg_path} for vector export.")
+        renderPDF.drawToFile(drawing, str(out_dir / 'F1_concept.pdf'))
+
+        sips = shutil.which('sips')
+        if not sips:
+            raise RuntimeError("The PNG preview export needs the macOS sips utility.")
+        subprocess.run(
+            [sips, '-s', 'format', 'png', str(out_dir / 'F1_concept.pdf'),
+             '--out', str(out_dir / 'F1_concept.png')],
+            check=True,
+            capture_output=True,
+        )
+        return
+
+    raise RuntimeError(
+        "Figure 1 vector export needs CairoSVG with Cairo, or svglib/reportlab."
     )
 
 

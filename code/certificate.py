@@ -1,108 +1,214 @@
 # -*- coding: utf-8 -*-
-"""Consistency certificate: the database-repair error lower bound.
+"""Conflict-hypergraph consistency certificates.
 
-Theorem (classical): erroneous items form a vertex cover of the conflict graph,
-so #errors >= |min vertex cover| >= |max matching| = m(G).
-Matching is the poly-time certificate; min vertex cover is tighter (exact on small graphs).
+Each emitted item is a vertex. A violated constraint is a hyperedge containing
+the emitted items that cannot all be correct. Consequently, the unknown set of
+erroneous items is a transversal (hitting set) of the conflict hypergraph. Any
+family of pairwise vertex-disjoint hyperedges requires a distinct error in every
+member, so the hypergraph matching number is a sound error lower bound.
+
+Unlike ordinary graph matching, maximum matching in a general hypergraph is
+NP-hard. Document-level extraction outputs in this project contain few
+violations (at most 16 in the released Re-DocRED runs), so an exact deterministic
+branch-and-bound solver is practical and avoids the order sensitivity of the
+previous greedy packing.
 """
-import itertools
-import networkx as nx
+
+from __future__ import annotations
+
+from collections import Counter
+from functools import lru_cache
+from itertools import combinations
+from typing import Hashable, Iterable
 
 
-def build_conflict_graph(items, conflicts):
-    """Graph on hashable items; an edge (i,j) means i and j cannot both be correct."""
-    G = nx.Graph()
-    G.add_nodes_from(items)
-    for i, j in conflicts:
-        if i != j:
-            G.add_edge(i, j)
-    return G
+Hyperedge = frozenset[Hashable]
 
 
-def matching_lower_bound(G):
-    """m(G) = maximum-cardinality matching size: a poly-time valid #errors lower bound."""
-    M = nx.max_weight_matching(G, maxcardinality=True)
-    return len(M)
+def _canonical_hyperedges(hyperedges: Iterable[Iterable[Hashable]]) -> tuple[Hyperedge, ...]:
+    """Drop empty/duplicate hyperedges and return a deterministic ordering."""
+    unique = {frozenset(edge) for edge in hyperedges if edge}
+    return tuple(sorted(unique, key=lambda edge: (len(edge), tuple(sorted(map(str, edge))))))
 
 
-def min_vertex_cover_exact(G):
-    """Minimum vertex cover (exact, small graphs only): a tighter #errors lower bound."""
-    active = [n for n in G.nodes if G.degree(n) > 0]
-    E = list(G.edges())
-    if not E:
+def greedy_disjoint_lower_bound(hyperedges: Iterable[Iterable[Hashable]]) -> int:
+    """Return an order-dependent maximal packing, retained only as a baseline."""
+    used: set[Hashable] = set()
+    bound = 0
+    for edge in hyperedges:
+        edge = frozenset(edge)
+        if edge and not edge.intersection(used):
+            bound += 1
+            used.update(edge)
+    return bound
+
+
+def _overlap_masks(edges: tuple[Hyperedge, ...]) -> tuple[int, ...]:
+    masks = [0] * len(edges)
+    for i, j in combinations(range(len(edges)), 2):
+        if edges[i].intersection(edges[j]):
+            masks[i] |= 1 << j
+            masks[j] |= 1 << i
+    return tuple(masks)
+
+
+def _edge_components(overlap_masks: tuple[int, ...]) -> list[int]:
+    """Return bit masks for components of the hyperedge-overlap graph."""
+    unseen = (1 << len(overlap_masks)) - 1
+    components: list[int] = []
+    while unseen:
+        seed = unseen & -unseen
+        component = 0
+        frontier = seed
+        while frontier:
+            bit = frontier & -frontier
+            frontier ^= bit
+            index = bit.bit_length() - 1
+            component |= bit
+            frontier |= overlap_masks[index] & unseen & ~component
+        unseen &= ~component
+        components.append(component)
+    return components
+
+
+def _maximum_independent_set_size(component: int, overlap_masks: tuple[int, ...]) -> int:
+    """Exact maximum independent set on one hyperedge-overlap component."""
+
+    @lru_cache(maxsize=None)
+    def solve(candidates: int) -> int:
+        if not candidates:
+            return 0
+        indices = [i for i in range(len(overlap_masks)) if candidates & (1 << i)]
+        pivot = max(
+            indices,
+            key=lambda i: ((overlap_masks[i] & candidates).bit_count(), -i),
+        )
+        pivot_bit = 1 << pivot
+        without_pivot = candidates & ~pivot_bit
+        excluded = solve(without_pivot)
+        included = 1 + solve(without_pivot & ~overlap_masks[pivot])
+        return max(excluded, included)
+
+    return solve(component)
+
+
+def maximum_disjoint_lower_bound(hyperedges: Iterable[Iterable[Hashable]]) -> int:
+    """Return the exact hypergraph matching number (a sound error lower bound)."""
+    edges = _canonical_hyperedges(hyperedges)
+    if not edges:
         return 0
-    total = 0
-    for comp in nx.connected_components(G.subgraph(active)):
-        comp = list(comp)
-        Ec = [(u, v) for u, v in E if u in comp and v in comp]
-        total += _min_cover_bruteforce(comp, Ec)
-    return total
+    overlaps = _overlap_masks(edges)
+    return sum(
+        _maximum_independent_set_size(component, overlaps)
+        for component in _edge_components(overlaps)
+    )
 
 
-def _min_cover_bruteforce(nodes, edges):
-    n = len(nodes)
-    if n > 20:  # large component: fall back to the (still valid) matching bound
-        H = nx.Graph(); H.add_nodes_from(nodes); H.add_edges_from(edges)
-        return len(nx.max_weight_matching(H, maxcardinality=True))
-    for k in range(0, n + 1):
-        for cover in itertools.combinations(nodes, k):
-            cs = set(cover)
-            if all(u in cs or v in cs for u, v in edges):
-                return k
-    return n
+def hypergraph_stats(hyperedges: Iterable[Iterable[Hashable]]) -> dict[str, float | int]:
+    """Describe conflict incidence without treating a hyperedge as pairwise conflict."""
+    edges = _canonical_hyperedges(hyperedges)
+    if not edges:
+        return {
+            "n_vertices": 0,
+            "n_hyperedges": 0,
+            "mean_hyperedge_cardinality": 0.0,
+            "maximum_hyperedge_cardinality": 0,
+            "maximum_vertex_degree": 0,
+            "n_components": 0,
+            "largest_component_vertices": 0,
+            "largest_component_hyperedges": 0,
+            "hyperedge_overlap_density": 0.0,
+            "incidence_density": 0.0,
+            "matching_number": 0,
+        }
 
+    vertices = set().union(*edges)
+    degrees = Counter(vertex for edge in edges for vertex in edge)
+    overlaps = _overlap_masks(edges)
+    components = _edge_components(overlaps)
+    component_vertex_counts = [
+        len(
+            set().union(
+                *(edges[i] for i in range(len(edges)) if component & (1 << i))
+            )
+        )
+        for component in components
+    ]
+    component_edge_counts = [component.bit_count() for component in components]
+    overlap_pairs = sum(mask.bit_count() for mask in overlaps) // 2
+    possible_pairs = len(edges) * (len(edges) - 1) // 2
+    incidences = sum(len(edge) for edge in edges)
 
-def certificate(items, conflicts):
-    """Return {matching_bound, vertex_cover_bound, n_conflict_edges, conflict_nodes}.
-    Guarantee (gold-free): true errors >= vertex_cover_bound >= matching_bound."""
-    G = build_conflict_graph(items, conflicts)
-    mb = matching_lower_bound(G)
-    vc = min_vertex_cover_exact(G)
     return {
-        "matching_bound": mb,
-        "vertex_cover_bound": vc,
-        "n_conflict_edges": G.number_of_edges(),
-        "conflict_nodes": sorted([n for n in G.nodes if G.degree(n) > 0], key=str),
+        "n_vertices": len(vertices),
+        "n_hyperedges": len(edges),
+        "mean_hyperedge_cardinality": incidences / len(edges),
+        "maximum_hyperedge_cardinality": max(map(len, edges)),
+        "maximum_vertex_degree": max(degrees.values()),
+        "n_components": len(components),
+        "largest_component_vertices": max(component_vertex_counts),
+        "largest_component_hyperedges": max(component_edge_counts),
+        "hyperedge_overlap_density": overlap_pairs / possible_pairs if possible_pairs else 0.0,
+        "incidence_density": incidences / (len(vertices) * len(edges)),
+        "matching_number": sum(
+            _maximum_independent_set_size(component, overlaps)
+            for component in components
+        ),
     }
 
 
-def _test():
-    """Unit tests + 2000-graph stress test for the matching <= cover <= true-errors order."""
+def _brute_force_matching_number(edges: tuple[Hyperedge, ...]) -> int:
+    best = 0
+    for size in range(len(edges) + 1):
+        for choice in combinations(edges, size):
+            used: set[Hashable] = set()
+            valid = True
+            for edge in choice:
+                if used.intersection(edge):
+                    valid = False
+                    break
+                used.update(edge)
+            if valid:
+                best = size
+    return best
+
+
+def _test() -> bool:
+    """Unit cases plus random exact comparisons against exhaustive enumeration."""
     cases = [
-        # (name, items, conflicts, expected matching, expected vertex cover)
-        ("empty", [1, 2, 3], [], 0, 0),
-        ("single edge", [1, 2], [(1, 2)], 1, 1),
-        ("two disjoint", [1, 2, 3, 4], [(1, 2), (3, 4)], 2, 2),
-        ("triangle", [1, 2, 3], [(1, 2), (2, 3), (1, 3)], 1, 2),
-        ("star", [0, 1, 2, 3], [(0, 1), (0, 2), (0, 3)], 1, 1),
-        ("path P4", [1, 2, 3, 4], [(1, 2), (2, 3), (3, 4)], 2, 2),
-        ("K4", [1, 2, 3, 4], [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)], 2, 3),
+        ("empty", [], 0),
+        ("two disjoint", [{1, 2}, {3, 4}], 2),
+        ("all overlap", [{1, 2, 3}, {1, 4}, {1, 5}], 1),
+        ("greedy trap", [{1, 3}, {1, 2}, {3, 4}], 2),
+        ("mixed cardinality", [{1, 2, 3}, {3, 4}, {5, 6}], 2),
     ]
     ok = True
-    print(f"{'case':16} {'matching':>9} {'vcover':>7}  expected(m/vc)  result")
-    for name, items, conf, em, evc in cases:
-        c = certificate(items, conf)
-        mb, vc = c["matching_bound"], c["vertex_cover_bound"]
-        passed = (mb == em and vc == evc and vc >= mb)
-        ok = ok and passed
-        print(f"{name:16} {mb:>9} {vc:>7}  ({em}/{evc})          {'PASS' if passed else 'FAIL'}")
+    for name, edges, expected in cases:
+        observed = maximum_disjoint_lower_bound(edges)
+        passed = observed == expected
+        ok &= passed
+        print(
+            f"{name:18} observed={observed} expected={expected} "
+            f"{'PASS' if passed else 'FAIL'}"
+        )
+
     import random
+
     random.seed(0)
-    stress_ok = True
-    for _ in range(2000):
-        nnodes = random.randint(2, 9)
-        nodes = list(range(nnodes))
-        conf = [(i, j) for i in range(nnodes) for j in range(i + 1, nnodes)
-                if random.random() < 0.4]
-        c = certificate(nodes, conf)
-        true_vc = _min_cover_bruteforce(nodes, [(u, v) for u, v in conf])
-        if not (c["vertex_cover_bound"] == true_vc and c["vertex_cover_bound"] >= c["matching_bound"]):
-            stress_ok = False
-            print("STRESS FAIL", nodes, conf, c, true_vc)
-            break
-    print(f"\nstress test (2000 random graphs): {'PASS (vc exact & vc>=matching always)' if stress_ok else 'FAIL'}")
-    print(f"\ntheorem verification: {'ALL PASS' if (ok and stress_ok) else 'HAS FAILURES'}")
-    return ok and stress_ok
+    for trial in range(500):
+        vertices = list(range(random.randint(3, 8)))
+        edges = []
+        for _ in range(random.randint(0, 9)):
+            cardinality = random.randint(2, min(4, len(vertices)))
+            edges.append(frozenset(random.sample(vertices, cardinality)))
+        canonical = _canonical_hyperedges(edges)
+        observed = maximum_disjoint_lower_bound(canonical)
+        expected = _brute_force_matching_number(canonical)
+        if observed != expected:
+            print("STRESS FAIL", trial, canonical, observed, expected)
+            return False
+    print("stress test (500 random hypergraphs): PASS")
+    return ok
 
 
 if __name__ == "__main__":
