@@ -14,7 +14,8 @@ from analyze_resample import analyze_model as analyze_recurrence
 
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Arial", "DejaVu Sans", "Liberation Sans"],
-    "svg.fonttype": "none", "pdf.fonttype": 42, "font.size": 7,
+    "svg.fonttype": "none", "svg.hashsalt": "consistency-certificates",
+    "pdf.fonttype": 42, "font.size": 7,
     "axes.spines.top": False, "axes.spines.right": False, "axes.linewidth": 0.6,
     "axes.labelsize": 7, "axes.labelpad": 3, "xtick.labelsize": 6.5,
     "ytick.labelsize": 6.5, "xtick.major.size": 2.5, "ytick.major.size": 2.5,
@@ -39,7 +40,27 @@ safe = lambda m: m.replace("/", "__")
 
 def save(fig, name):
     for ext in ("svg", "pdf", "png"):
-        fig.savefig(f"{FIG}/{name}.{ext}", bbox_inches="tight", dpi=(600 if ext == "png" else None))
+        metadata = None
+        if ext == "pdf":
+            metadata = {
+                "Creator": "Consistency Certificates reproducibility pipeline",
+                "Producer": "Matplotlib",
+                "CreationDate": None,
+                "ModDate": None,
+            }
+        elif ext == "svg":
+            metadata = {
+                "Creator": "Consistency Certificates reproducibility pipeline",
+                "Date": None,
+            }
+        elif ext == "png":
+            metadata = {"Software": "Matplotlib"}
+        fig.savefig(
+            f"{FIG}/{name}.{ext}",
+            bbox_inches="tight",
+            dpi=(600 if ext == "png" else None),
+            metadata=metadata,
+        )
     plt.close(fig)
 
 

@@ -7,11 +7,29 @@ at two-column width and makes every element editable.
 """
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "result" / "figs"
+
+
+def _strip_volatile_png_metadata(path: Path) -> None:
+    """Remove timestamp-bearing PNG chunks while preserving rendered pixels."""
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"Not a PNG file: {path}")
+    output = bytearray(data[:8])
+    offset = 8
+    while offset < len(data):
+        length = struct.unpack(">I", data[offset:offset + 4])[0]
+        chunk_type = data[offset + 4:offset + 8]
+        end = offset + 12 + length
+        if chunk_type not in {b"eXIf", b"tIME"}:
+            output.extend(data[offset:end])
+        offset = end
+    path.write_bytes(output)
 
 
 def _register_embeddable_reportlab_fonts() -> None:
@@ -248,6 +266,7 @@ def write_assets(out_dir: Path = OUT) -> None:
             output_width=2400,
             output_height=1300,
         )
+        _strip_volatile_png_metadata(out_dir / 'F1_concept.png')
         return
 
     # CairoSVG needs a system Cairo library on macOS. svglib/reportlab keeps
@@ -263,7 +282,7 @@ def write_assets(out_dir: Path = OUT) -> None:
         drawing = svg2rlg(str(svg_path))
         if drawing is None:
             raise RuntimeError(f"Could not parse {svg_path} for vector export.")
-        renderPDF.drawToFile(drawing, str(out_dir / 'F1_concept.pdf'))
+        renderPDF.drawToFile(drawing, str(out_dir / 'F1_concept.pdf'), invariant=1)
 
         sips = shutil.which('sips')
         if not sips:
@@ -274,6 +293,7 @@ def write_assets(out_dir: Path = OUT) -> None:
             check=True,
             capture_output=True,
         )
+        _strip_volatile_png_metadata(out_dir / 'F1_concept.png')
         return
 
     raise RuntimeError(
