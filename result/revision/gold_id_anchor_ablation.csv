@@ -1,0 +1,16 @@
+setting,model,all_violations,conservative_checkable,conservative_validated,exact_unique_checkable,exact_unique_validated,other_checkable,other_validated,no_unique_gold_id
+in_source,Qwen2.5-14B,667,632,632,507,507,125,125,35
+in_source,Qwen2.5-32B,573,540,540,428,428,112,112,33
+in_source,Qwen2.5-72B,774,684,684,504,504,180,180,90
+in_source,DeepSeek-V3,755,691,691,522,522,169,169,64
+in_source,ALL,2769,2547,2547,1961,1961,586,586,222
+holdout,Qwen2.5-14B,881,827,827,659,659,168,168,54
+holdout,Qwen2.5-32B,784,742,740,587,585,155,155,42
+holdout,Qwen2.5-72B,1122,986,983,747,744,239,239,136
+holdout,DeepSeek-V3,1022,946,945,733,732,213,213,76
+holdout,ALL,3809,3501,3495,2726,2720,775,775,308
+schema_only,Qwen2.5-14B,795,742,738,586,585,156,153,53
+schema_only,Qwen2.5-32B,693,650,637,514,504,136,133,43
+schema_only,Qwen2.5-72B,1018,889,880,682,674,207,206,129
+schema_only,DeepSeek-V3,916,841,821,667,649,174,172,75
+schema_only,ALL,3422,3122,3076,2449,2412,673,664,300

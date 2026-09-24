@@ -7,12 +7,20 @@ import argparse
 import csv
 import json
 import math
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 
 from scipy.stats import beta
 
-from common import NAME2PID, REL_NAME, ROOT, find_violations, norm, validate_against_gold
+from common import (
+    NAME2PID,
+    REL_NAME,
+    ROOT,
+    find_violations,
+    gold_error_records,
+    norm,
+    validate_against_gold,
+)
 
 
 ALL_MODELS = [
@@ -55,6 +63,31 @@ def relation_key(relation: dict):
     )
 
 
+def entity_type_keys(extraction: dict) -> set[tuple[str, str]]:
+    """Return normalized (entity name, emitted type) pairs for one decode."""
+    return {
+        (norm(entity.get("name")), entity.get("type"))
+        for entity in extraction.get("entities", [])
+        if isinstance(entity, dict) and entity.get("name") and entity.get("type")
+    }
+
+
+def error_recurrence(error: dict, relation_sets: list[set], entity_type_sets: list[set]) -> int:
+    """Count exact recurrence of one erroneous emitted item across decodes.
+
+    A spurious-relation error recurs only when the same normalized triple is
+    emitted.  An entity-type error recurs only when the same normalized entity
+    is emitted with the same incorrect type as in the deployed decode.
+    """
+    if error["category"] == "relation_spurious":
+        key = (error["head"], error["pid"], error["tail"])
+        return sum(key in relation_set for relation_set in relation_sets)
+    if error["category"] == "entity_type":
+        key = (error["name"], error["emitted_type"])
+        return sum(key in entity_set for entity_set in entity_type_sets)
+    raise ValueError(f"Unsupported error category: {error['category']}")
+
+
 def interval(successes: int, trials: int) -> tuple[float, float]:
     if not trials:
         return math.nan, math.nan
@@ -66,8 +99,8 @@ def interval(successes: int, trials: int) -> tuple[float, float]:
 def analyze_model(model: str, documents: int, samples: int) -> tuple[dict, list[dict]]:
     docs = json.load(open(Path(ROOT) / "data" / "redocred_dev_300.json"))[:documents]
     signatures = json.load(open(Path(ROOT) / "data" / "relations.json"))
-    recurrence = []
-    per_relation = defaultdict(list)
+    recurrence: list[int] = []
+    per_category_relation: dict[tuple[str, str], list[int]] = defaultdict(list)
     complete_documents = 0
     missing_samples = 0
     for index, doc in enumerate(docs):
@@ -89,15 +122,23 @@ def analyze_model(model: str, documents: int, samples: int) -> tuple[dict, list[
             }
             for decode in valid_decodes
         ]
+        entity_type_sets = [entity_type_keys(decode) for decode in valid_decodes]
         violations, entity_types = find_violations(baseline, signatures, "empirical")
         violations, _ = validate_against_gold(violations, entity_types, doc)
-        for violation in violations:
-            if not violation["sound"]:
-                continue
-            key = (violation["h"], violation["pid"], violation["t"])
-            frequency = sum(key in relation_set for relation_set in relation_sets)
+        sound_violations = [violation for violation in violations if violation["sound"]]
+        involved_items = (
+            set().union(*(violation["he"] for violation in sound_violations))
+            if sound_violations else set()
+        )
+        visible_errors = [
+            error for error in gold_error_records(baseline, doc)["errors"]
+            if error["item"] in involved_items
+        ]
+        for error in visible_errors:
+            frequency = error_recurrence(error, relation_sets, entity_type_sets)
             recurrence.append(frequency)
-            per_relation[violation["pid"]].append(frequency)
+            pid = error.get("pid", "ALL_ENTITY_TYPES")
+            per_category_relation[(error["category"], pid)].append(frequency)
 
     stable = sum(frequency >= math.ceil(samples / 2) for frequency in recurrence)
     low, high = interval(stable, len(recurrence))
@@ -107,21 +148,22 @@ def analyze_model(model: str, documents: int, samples: int) -> tuple[dict, list[
         "complete_documents": complete_documents,
         "samples_per_document": samples,
         "missing_or_failed_samples": missing_samples,
-        "certified_errors": len(recurrence),
-        "stable_certified_errors": stable,
+        "certificate_visible_errors": len(recurrence),
+        "stable_visible_errors": stable,
         "stable_fraction": stable / len(recurrence) if recurrence else None,
         "stable_ci95_lower": low,
         "stable_ci95_upper": high,
         **{f"recurrence_{frequency}": recurrence.count(frequency) for frequency in range(samples + 1)},
     }
     relation_rows = []
-    for pid, values in sorted(per_relation.items()):
+    for (category, pid), values in sorted(per_category_relation.items()):
         relation_stable = sum(value >= math.ceil(samples / 2) for value in values)
         relation_rows.append({
             "model": model,
+            "error_category": category,
             "pid": pid,
-            "relation": REL_NAME.get(pid, pid),
-            "certified_errors": len(values),
+            "relation": REL_NAME.get(pid, "entity type assignment"),
+            "certificate_visible_errors": len(values),
             "stable_errors": relation_stable,
             "stable_fraction": relation_stable / len(values),
             **{f"recurrence_{frequency}": values.count(frequency) for frequency in range(samples + 1)},
@@ -159,7 +201,7 @@ def main() -> None:
     for summary in summaries:
         print(
             f"{summary['model']}: complete={summary['complete_documents']}/{summary['requested_documents']} "
-            f"stable={summary['stable_certified_errors']}/{summary['certified_errors']} "
+            f"stable={summary['stable_visible_errors']}/{summary['certificate_visible_errors']} "
             f"= {summary['stable_fraction']:.1%}" if summary["stable_fraction"] is not None else
             f"{summary['model']}: no complete certified cases"
         )

@@ -48,6 +48,16 @@ MODEL_LABEL = {
     "Qwen/Qwen2.5-72B-Instruct": "Qwen2.5-72B",
     "deepseek-ai/DeepSeek-V3": "DeepSeek-V3",
 }
+CONSOLIDATED_MODELS = [
+    "Qwen/Qwen2.5-7B-Instruct",
+    *MODELS,
+    "THUDM/GLM-4-32B-0414",
+]
+CONSOLIDATED_LABEL = {
+    **MODEL_LABEL,
+    "Qwen/Qwen2.5-7B-Instruct": "Qwen2.5-7B",
+    "THUDM/GLM-4-32B-0414": "GLM-4-32B",
+}
 DOCS = json.load(open(Path(ROOT) / "data" / "redocred_dev_300.json"))
 EMPIRICAL = json.load(open(Path(ROOT) / "data" / "relations.json"))
 OUT = Path(ROOT) / "result" / "revision"
@@ -297,6 +307,49 @@ def aggregate_models(rows: list[dict]) -> list[dict]:
     return output
 
 
+def consolidated_model_results() -> list[dict]:
+    """Build one six-model descriptive table under identical certificate code."""
+    output = []
+    for model in CONSOLIDATED_MODELS:
+        indices = COMMON if model in MODELS else list(range(len(DOCS)))
+        valid_documents = relations = firing = hyperedges = bound_total = errors = detectable = 0
+        bound_max = 0
+        for index in indices:
+            extraction = load(model, index)
+            if not valid_output(extraction):
+                continue
+            valid_documents += 1
+            emitted = emitted_relations(extraction)
+            relations += len(emitted)
+            violations, _ = find_violations(extraction, EMPIRICAL, "empirical")
+            edges = [violation["he"] for violation in violations]
+            bound = maximum_disjoint_lower_bound(edges)
+            audit_errors = gold_error_records(extraction, DOCS[index])["errors"]
+            involved = set().union(*edges) if edges else set()
+            firing += int(bound > 0)
+            hyperedges += len(edges)
+            bound_total += bound
+            bound_max = max(bound_max, bound)
+            errors += len(audit_errors)
+            detectable += sum(error["item"] in involved for error in audit_errors)
+        output.append({
+            "model": CONSOLIDATED_LABEL[model],
+            "evaluated_documents": len(indices),
+            "valid_documents": valid_documents,
+            "valid_output_rate": valid_documents / len(indices),
+            "relations": relations,
+            "documents_firing": firing,
+            "conflict_hyperedges": hyperedges,
+            "certificate_bound_total": bound_total,
+            "certificate_bound_mean_per_evaluated_document": bound_total / len(indices),
+            "certificate_bound_max": bound_max,
+            "gold_verifiable_errors": errors,
+            "detectable_errors": detectable,
+            "detectable_fraction": detectable / errors if errors else math.nan,
+        })
+    return output
+
+
 def volume_strata(rows: list[dict]) -> list[dict]:
     bins = [(1, 5), (6, 10), (11, 15), (16, 20), (21, 25), (26, 10**9)]
     output = []
@@ -486,6 +539,45 @@ def alignment_summary(rows: list[dict]) -> tuple[list[dict], list[dict]]:
     return summary, sample
 
 
+def alignment_selection_effect(rows: list[dict]) -> list[dict]:
+    """Quantify whether gold-alignment exclusions are uniform across strata."""
+    strata: list[tuple[str, str, str, str, list[dict]]] = [
+        ("overall", "ALL", "", "all relations", rows),
+    ]
+    for model in sorted({row["model"] for row in rows}):
+        strata.append(("model", model, "", "all relations", [
+            row for row in rows if row["model"] == model
+        ]))
+    for pid in sorted({row["pid"] for row in rows}):
+        strata.append(("relation", pid, pid, REL_NAME.get(pid, pid), [
+            row for row in rows if row["pid"] == pid
+        ]))
+
+    output = []
+    for scope, group, pid, relation, selected in strata:
+        excluded = [row for row in selected if not row["cluster_id_checkable"]]
+        retained = [row for row in selected if row["cluster_id_checkable"]]
+        output.append({
+            "scope": scope,
+            "group": group,
+            "pid": pid,
+            "relation": relation,
+            "violations": len(selected),
+            "checkable": len(retained),
+            "uncheckable": len(excluded),
+            "uncheckable_rate": len(excluded) / len(selected) if selected else math.nan,
+            "mean_document_relations_uncheckable": (
+                float(np.mean([row["document_relations"] for row in excluded]))
+                if excluded else math.nan
+            ),
+            "mean_document_relations_checkable": (
+                float(np.mean([row["document_relations"] for row in retained]))
+                if retained else math.nan
+            ),
+        })
+    return output
+
+
 def review_budget(rows: list[dict]) -> list[dict]:
     output = []
     rng = random.Random(20260915)
@@ -548,21 +640,25 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     rows, alignments, taxonomy = document_rows()
     models = aggregate_models(rows)
+    consolidated = consolidated_model_results()
     volumes = volume_strata(rows)
     relations, unsound, sensitivity = relation_reliability()
     relation_tightness_rows = relation_tightness()
     alignment_counts, audit_sample = alignment_summary(alignments)
+    alignment_selection = alignment_selection_effect(alignments)
     budgets = review_budget(rows)
     taxonomy_table = taxonomy_rows(taxonomy)
 
     write_csv("per_document.csv", rows)
     write_csv("per_model.csv", models)
+    write_csv("consolidated_model_table.csv", consolidated)
     write_csv("tightness_by_volume.csv", volumes)
     write_csv("relation_reliability.csv", relations)
     write_csv("tightness_by_relation.csv", relation_tightness_rows)
     write_csv("unsound_cases.csv", unsound)
     write_csv("alignment_breakdown.csv", alignment_counts)
     write_csv("alignment_audit_sample.csv", audit_sample)
+    write_csv("alignment_selection_effect.csv", alignment_selection)
     write_csv("review_budget.csv", budgets)
     write_csv("error_taxonomy.csv", taxonomy_table)
     (OUT / "constraint_sensitivity.json").write_text(
@@ -581,9 +677,11 @@ def main() -> None:
         "empirical_unsound": sum(row["unsound"] for row in empirical_relation_rows),
         "legacy_uncheckable_violations": legacy_uncheckable,
         "cluster_id_uncheckable_violations": cluster_uncheckable,
+        "alignment_selection_effect": alignment_selection,
         "holdout_unsound_cases": holdout_unsound,
         "schema_unsound_cases": schema_unsound,
         "models": models,
+        "consolidated_models": consolidated,
         "constraint_sensitivity": sensitivity,
     }
     (OUT / "revision_summary.json").write_text(
@@ -616,7 +714,7 @@ def main() -> None:
         "",
         "The CSV files in this directory contain relation-level confidence intervals, exact unsound "
         "cases, volume-normalized rates, review-budget comparisons, error taxonomy, and the "
-        "stratified alignment-audit sample.",
+        "stratified alignment-audit sample and alignment-selection analysis.",
     ])
     (OUT / "revision_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
     print("REVISION_ANALYSIS_OK")

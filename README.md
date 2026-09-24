@@ -41,24 +41,24 @@ disjoint hyperedge packing turns the resulting violations into a conditional, go
 
 | Setting | Metric | Value |
 |---|---|---|
-| Hold-out signatures (disjoint document split) | out-of-sample soundness | **99.8%** (3495 / 3501; exact 95% CI 99.63–99.94%) |
-| Schema-only signatures (Wikidata semantics, **zero corpus**) | soundness | **98.5%** (3076 / 3122; exact 95% CI 98.04–98.92%) |
-| Independent SciERC corpus | soundness | **100%** (134 / 134; exact 95% CI 97.28–100%) |
+| Hold-out signatures (disjoint document split) | out-of-sample validation | **99.8%** (3495 / 3501; exact 95% CI 99.63–99.94%) |
+| Manually specified schema signatures (**zero corpus**) | validation | **98.5%** (3076 / 3122; exact 95% CI 98.04–98.92%) |
+| Independent SciERC corpus | validation | **100%** (134 / 134; exact 95% CI 97.28–100%) |
 | Definitional-signature audit (4 models) | observed false positives | **0 / 340**; one-sided 95% upper bound **0.88%** |
 | Construction-aligned empirical diagnostic | observed false positives | **0 / 2547**; not treated as independent validation |
 | Cross-architecture control (GLM-4-32B) | observed false positives | **0 / 1085** over 300/300 valid documents |
 | Firing rate (empirical signatures) | documents with a non-zero bound | **66–73%** |
 | Detectable class | share of gold-verifiable emitted errors participating in conflicts | **24.1–25.2%** |
-| Qwen2.5-32B self-consistency | certified errors recurring in at least 3 of 5 decodes | **21 / 95 = 22.1%** (exact 95% CI 14.2–31.8%) |
-| Five-model self-consistency | stable certified-error range (50 documents/model, 5 decodes) | **13.9–39.9%** (14B 13.9%, 32B 22.1%, 72B 35.3%, DeepSeek 39.9%, GLM 19.8%) |
+| Qwen2.5-32B self-consistency | unique visible errors recurring in at least 3 of 5 decodes | **28 / 102 = 27.5%** (exact 95% CI 19.1–37.2%) |
+| Five-model self-consistency | stable visible-error range (50 documents/model, 5 decodes) | **19.6–50.6%** (14B 19.6%, 32B 27.5%, 72B 44.0%, DeepSeek 50.6%, GLM 24.2%) |
 | Weak-model cliff | Qwen2.5-7B valid structured output | **5%** |
 
-![Valid-output rate, certificate firing rate, and soundness across the model-capability gradient](result/figs/F2_gradient.png)
+![Valid-output rate, certificate firing rate, and gold validation across the model-capability gradient](result/figs/F2_gradient.png)
 
 *Figure 2: The weak-model failure is structural; every checkable in-source violation from each
 usable extractor contains a gold-measured error, and firing is 66–73%.*
 
-| Checkable violations and soundness | Detectable error class |
+| Checkable violations and retrospective validation | Detectable error class |
 |:---:|:---:|
 | ![Checkable violations under relation-signature and definitional constraints](result/figs/F3_soundness.png) | ![Certifiable and internally consistent shares of gold-measured errors](result/figs/F6_detectable.png) |
 
@@ -71,12 +71,18 @@ Evaluation runs on **297 Re-DocRED documents** on which all four usable extracto
 structured output. DeepSeek-V3 was re-queried over the full 300-document dev split (299 valid
 outputs, one empty), so no extractor's coverage is partial in the released data.
 
-Observed soundness is **99.8%** for disjoint-document signatures, **98.5%** for a fully
+Retrospective constraint-validation is **99.8%** for disjoint-document signatures, **98.5%** for a fully
 corpus-independent schema, and **100%** for 134 checkable violations on independently annotated
 SciERC. The 0/2547 empirical result shares an annotation family between
 signature construction and validation, so it is reported only as a construction-aligned diagnostic. The theorem
 (`#errors ≥ maximum vertex-disjoint hyperedge packing`) holds on every document and the exact
 solver is separately checked against exhaustive enumeration on 500 random conflict hypergraphs.
+
+Candidate functional rules are not used in any certified result: only **415/449** checkable clashes
+contained a gold-measured spurious relation (**92.4%**, exact 95% CI 89.6–94.7%). An exact
+minimum-hitting-set audit also found that the transversal and packing bounds coincide on all **1,188**
+Re-DocRED document-model pairs. Reproduce these checks with `code/validate_functional.py` and
+`code/analyze_transversal.py`; their machine-readable outputs are in `result/revision/`.
 
 ![Per-document certificate bound and review-prioritization curve](result/figs/F9_triage.png)
 
@@ -156,10 +162,16 @@ arrays. The command returns every implicated item and the document-level certifi
 python3 code/audit_output.py path/to/extraction.json --constraints all
 ```
 
+With `--constraints all`, empirical and definitional violations contribute to the
+conditional certificate, while candidate functional clashes are returned separately as
+`exploratory` warnings. The released Re-DocRED validation does not treat functional
+warnings as certified errors. Use `--constraints functional` to inspect those warnings
+alone; that mode deliberately issues no error lower bound.
+
 ## What you can use the code for
 
-- Audit a new black-box information extraction output using empirical, definitional, or functional
-  constraints, provided those constraints are valid for the target schema.
+- Audit a new black-box information extraction output using empirical and definitional
+  constraints, while retaining candidate functional clashes as separate exploratory warnings.
 - Return the implicated output items and a conditional document-level error lower bound from one decode.
 - Reproduce the main soundness, firing, detectable-class, hold-out, schema-only, cross-family,
   self-consistency, and triage analyses from the released cached outputs.
@@ -217,7 +229,7 @@ author-facing submission files are kept outside this public code-and-data reposi
   GLM-4-32B-0414 as a cross-architecture control. We queried every model as a black box in JSON mode
   at temperature 0.
 - **Constraints:** relation type signatures (empirical and definitional), functional-relation
-  consistency, and a schema-only variant derived from Wikidata property semantics with no corpus.
+  consistency, and a manually specified schema-only variant based on Wikidata property meanings with no corpus statistics.
   Functional constraints are reported as a separate firing-only analysis in the paper; they are not
   pooled into the gold-audited headline soundness or bound-tightness results.
 

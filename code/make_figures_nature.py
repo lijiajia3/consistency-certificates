@@ -60,14 +60,14 @@ def generate(g):
             markeredgecolor="white", markeredgewidth=.5)
     ax.plot(x[1:], np.asarray(firing)[1:], "o-", color=C["fire"],
             label="Certificate firing")
-    ax.plot(x[1:], np.asarray(sound)[1:], "^-", color=C["sound"], label="Observed soundness")
+    ax.plot(x[1:], np.asarray(sound)[1:], "^-", color=C["sound"], label="Gold validation")
     ax.axvspan(-.35, .35, color=C["red_s"], zorder=-1)
     ax.text(0, 34, "structural\ncollapse", ha="center", va="center",
             fontsize=6.5, color=C["error"])
     ax.text(0, valid_rate[0] + 5, f"{valid_rate[0]:.0f}%", ha="center",
             color=C["valid"], fontsize=6.2)
     for i in range(1, len(MODELS)):
-        ax.text(i, sound[i] + 3.2, "100% obs.", ha="center", color=C["sound"], fontsize=6.2)
+        ax.text(i, sound[i] + 3.2, "100% val.", ha="center", color=C["sound"], fontsize=6.2)
     ax.set_xticks(x); ax.set_xticklabels(LAB)
     ax.set_ylabel("Rate (%)")
     ax.set_ylim(0, 108); ax.set_yticks([0, 25, 50, 75, 100])
@@ -116,7 +116,7 @@ def generate(g):
     ax.set_yticks(y)
     ax.set_yticklabels([f"{name}\n{sound:,}/{total:,}" for name, sound, total in validation])
     ax.invert_yaxis()
-    ax.set_xlabel("Observed soundness (%)")
+    ax.set_xlabel("Constraint validation (%)")
     ax.set_xlim(97.0, 100.15)
     ax.set_xticks([97, 98, 99, 100])
     ax.text(
@@ -187,33 +187,17 @@ def generate(g):
     # F7/F8 — recurrence and complementary detection.
     resample_model, k_decodes = "Qwen/Qwen2.5-32B-Instruct", 5
 
-    def load_k(i, k):
-        path = os.path.join(ROOT, "result", "resample", safe(resample_model),
-                            f"{i:04d}_{k}.json")
-        return json.load(open(path)) if os.path.exists(path) else None
-
-    recurrence = []
-    for i in range(50):
-        deployed = load(resample_model, i)
-        if not deployed or deployed.get("_error"):
-            continue
-        decodes = [d for d in [load_k(i, k) for k in range(k_decodes)] if d]
-        if len(decodes) < k_decodes:
-            continue
-        rel_sets = [set((norm(r.get("head")), NAME2PID.get(r.get("relation")),
-                         norm(r.get("tail"))) for r in d.get("relations", [])
-                        if isinstance(r, dict) and NAME2PID.get(r.get("relation")))
-                    for d in decodes]
-        violations, et = find_violations(deployed, SIGS, "empirical")
-        violations, _ = validate_against_gold(violations, et, DOCS[i])
-        for v in violations:
-            if v["sound"]:
-                recurrence.append(sum((v["h"], v["pid"], v["t"]) in s for s in rel_sets))
-    if recurrence:
-        counts = [recurrence.count(i) for i in range(k_decodes + 1)]
-        stable = sum(counts[3:]); total = len(recurrence)
-        ci_low = 100 * beta.ppf(0.025, stable, total - stable + 1)
-        ci_high = 100 * beta.ppf(0.975, stable + 1, total - stable)
+    recurrence_path = os.path.join(ROOT, "result", "revision", "self_consistency_by_model.csv")
+    with open(recurrence_path, newline="", encoding="utf-8") as handle:
+        recurrence_row = next(
+            row for row in csv.DictReader(handle) if row["model"] == resample_model
+        )
+    counts = [int(recurrence_row[f"recurrence_{i}"]) for i in range(k_decodes + 1)]
+    stable = int(recurrence_row["stable_visible_errors"])
+    total = int(recurrence_row["certificate_visible_errors"])
+    if total:
+        ci_low = 100 * float(recurrence_row["stable_ci95_lower"])
+        ci_high = 100 * float(recurrence_row["stable_ci95_upper"])
         fig, ax = plt.subplots(figsize=(3.5, 2.35))
         ax.bar(range(k_decodes + 1), counts, width=.62,
                color=[C["valid"]] * 3 + [C["error"]] * 3)
@@ -225,7 +209,7 @@ def generate(g):
                 ha="center", fontsize=6.1, color=C["error"])
         ax.set_xticks(range(k_decodes + 1))
         ax.set_xlabel(f"Recurrence across {k_decodes} additional decodes")
-        ax.set_ylabel("Certified errors"); ax.set_ylim(0, ymax)
+        ax.set_ylabel("Visible error items"); ax.set_ylim(0, ymax)
         clean(ax); save(fig, "F7_selfconsistency")
 
         detected = 100 * (total - stable) / total
@@ -238,7 +222,7 @@ def generate(g):
                 color=C["fire"])
         ax.set_yticks(yy)
         ax.set_yticklabels(["Certificate (1 decode)", f"Resampling (K={k_decodes})"])
-        ax.set_xlabel("Deployed certified errors detected (%)"); ax.set_xlim(0, 108)
+        ax.set_xlabel("Certificate-visible errors detected (%)"); ax.set_xlim(0, 108)
         ax.set_ylim(-.3, 1.3)
         clean(ax, left=False); ax.tick_params(axis="y", length=0)
         save(fig, "F8_complementary")
@@ -306,7 +290,7 @@ def generate(g):
 
     # F11 — gold-free empirical violations on the shared 297-document set.  This
     # intentionally includes flags without a gold endpoint alignment; gold is not
-    # needed to issue a certificate, only to measure soundness in F3.
+    # needed to issue a certificate, only for retrospective validation in F3.
     pooled = Counter()
     for m in VALID:
         pooled.update(D[m]["per_pid"])

@@ -14,4 +14,4 @@
 | Qwen2.5-72B | 4557 | 214 | 773 | 346 | 3492 | 0.083 | 0.351 |
 | DeepSeek-V3 | 4185 | 218 | 752 | 297 | 3298 | 0.080 | 0.369 |
 
-The CSV files in this directory contain relation-level confidence intervals, exact unsound cases, volume-normalized rates, review-budget comparisons, error taxonomy, and the stratified alignment-audit sample.
+The CSV files in this directory contain relation-level confidence intervals, exact unsound cases, volume-normalized rates, review-budget comparisons, error taxonomy, and the stratified alignment-audit sample and alignment-selection analysis.

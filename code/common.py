@@ -30,7 +30,9 @@ DEFINITIONAL = {
     "P19": {("PER", "LOC")}, "P20": {("PER", "LOC")},
 }
 
-# Single-valued relations: at most one value per head.
+# Candidate single-valued relations. These must be validated for the target
+# annotation policy before they are allowed to contribute to a certificate.
+# The released Re-DocRED analysis keeps them as exploratory warnings only.
 FUNCTIONAL = {"P569", "P570", "P571", "P577", "P19", "P20"}
 
 

@@ -33,6 +33,10 @@ ANALYSIS_TASKS = (
     ("self_consistency", "analyze_resample.py", ("--all-models", "--documents", "50", "--samples", "5", "--require-complete")),
     ("scierc_external", "analyze_scierc.py", ("--require-complete",)),
     ("triage", "analyze_triage.py", ()),
+    ("functional_validation", "validate_functional.py", ()),
+    ("gold_id_anchor", "ablation_gold_ids.py", ()),
+    ("candidate_family_screen", "screen_constraint_families.py", ()),
+    ("transversal_sensitivity", "analyze_transversal.py", ()),
 )
 
 EXPECTED_MARKERS = {
@@ -44,6 +48,10 @@ EXPECTED_MARKERS = {
     "revision_analyses": ("REVISION_ANALYSIS_OK",),
     "self_consistency": ("SELF_CONSISTENCY_ANALYSIS_OK",),
     "scierc_external": ("SCIERC_ANALYSIS_OK",),
+    "functional_validation": ("ALL,ALL,415,34,449,27,0.924276",),
+    "gold_id_anchor": ("'exact_unique_checkable': 2726", "'exact_unique_validated': 2720"),
+    "candidate_family_screen": ("'relation': 'ALL'", "'certified_gain': 0"),
+    "transversal_sensitivity": ("ALL,1188,1163,1163,0,0",),
 }
 
 FIGURE_NAMES = (

@@ -21,7 +21,9 @@ from common import (
 
 
 EMPIRICAL_SIGNATURES = Path(ROOT) / "data" / "relations.json"
-FAMILY_CHOICES = ("empirical", "definitional", "functional", "all")
+CERTIFIED_FAMILIES = ("empirical", "definitional")
+EXPLORATORY_FAMILIES = ("functional",)
+FAMILY_CHOICES = ("certified", "empirical", "definitional", "functional", "all")
 
 
 def parse_args() -> argparse.Namespace:
@@ -39,8 +41,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--constraints",
         choices=FAMILY_CHOICES,
-        default="all",
-        help="Constraint family to evaluate (default: all).",
+        default="certified",
+        help=(
+            "Constraint family to evaluate (default: certified). 'all' also "
+            "reports exploratory functional warnings, but never adds them to "
+            "the certified lower bound."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -68,41 +74,78 @@ def validate_extraction(extraction: Any) -> dict[str, Any]:
     return extraction
 
 
-def serialise_violation(violation: dict[str, Any], family: str) -> dict[str, Any]:
+def serialise_violation(
+    violation: dict[str, Any], family: str, role: str
+) -> dict[str, Any]:
     record = {key: value for key, value in violation.items() if key != "he"}
     record["family"] = family
+    record["role"] = role
     record["scope"] = sorted(violation["he"])
     return record
 
 
 def audit(extraction: dict[str, Any], selected: str) -> dict[str, Any]:
     signatures = load_json(EMPIRICAL_SIGNATURES)
-    families = (
-        ("empirical", "definitional", "functional")
-        if selected == "all"
-        else (selected,)
-    )
+    if selected == "all":
+        certified_families = CERTIFIED_FAMILIES
+        exploratory_families = EXPLORATORY_FAMILIES
+    elif selected == "certified":
+        certified_families = CERTIFIED_FAMILIES
+        exploratory_families = ()
+    elif selected == "functional":
+        certified_families = ()
+        exploratory_families = ("functional",)
+    else:
+        certified_families = (selected,)
+        exploratory_families = ()
 
     violations: list[dict[str, Any]] = []
-    hyperedges = []
+    certified_hyperedges = []
     counts: dict[str, int] = {}
-    for family in families:
+    roles = [
+        *((family, "certified") for family in certified_families),
+        *((family, "exploratory") for family in exploratory_families),
+    ]
+    for family, role in roles:
         if family == "functional":
             family_violations = find_functional_violations(extraction)
         else:
             family_violations, _ = find_violations(extraction, signatures, family)
         counts[family] = len(family_violations)
-        hyperedges.extend(violation["he"] for violation in family_violations)
+        if role == "certified":
+            certified_hyperedges.extend(
+                violation["he"] for violation in family_violations
+            )
         violations.extend(
-            serialise_violation(violation, family) for violation in family_violations
+            serialise_violation(violation, family, role)
+            for violation in family_violations
         )
 
-    bound = disjoint_lower_bound(hyperedges)
+    if certified_families:
+        bound: int | None = disjoint_lower_bound(certified_hyperedges)
+        certificate = (
+            f">= {bound} extracted items are wrong"
+            if bound
+            else "uninformative lower bound: 0"
+        )
+    else:
+        bound = None
+        certificate = (
+            "not issued: the selected functional rules are exploratory and "
+            "are not validated hard constraints for Re-DocRED"
+        )
+
+    exploratory_count = sum(
+        count for family, count in counts.items() if family in exploratory_families
+    )
     return {
-        "certificate": f">= {bound} extracted items are wrong" if bound else "abstain",
+        "certificate": certificate,
         "certified_error_lower_bound": bound,
         "n_violations": len(violations),
         "violations_by_family": counts,
+        "certified_constraint_families": list(certified_families),
+        "exploratory_constraint_families": list(exploratory_families),
+        "exploratory_warning_count": exploratory_count,
         "constraint_validity_required": True,
         "gold_used": False,
         "violations": violations,

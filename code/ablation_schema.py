@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 """Corpus-independent (schema-only) signature ablation.
 
-Conservative (head-type, tail-type) allow sets are hand-built for all 18 relations from
-Wikidata property semantics, with no reference to Re-DocRED. This shows soundness is not
-induced by same-corpus construction and that a fully gold-free variant exists.
+Conservative (head-type, tail-type) allow sets were manually specified for all
+18 relations by interpreting each Wikidata property's meaning.  They do not use
+Re-DocRED frequencies or type-pair statistics.  The script also exports the
+complete mapping and property URLs so that this provenance is auditable.
 """
+import csv
 import json, os
 from itertools import product
-from common import find_violations, disjoint_lower_bound, validate_against_gold, TYPES, ROOT
+from common import (REL_NAME, find_violations, disjoint_lower_bound,
+                    validate_against_gold, TYPES, ROOT)
 
 DOCS = json.load(open(os.path.join(ROOT, "data", "redocred_dev_300.json")))
 EMP = json.load(open(os.path.join(ROOT, "data", "relations.json")))
@@ -37,6 +40,28 @@ SCHEMA_HT = {
     "P264": ({"PER", "ORG", "MISC"}, {"ORG"}),                # record label -> org
 }
 SCHEMA = {pid: {"signatures": [list(p) for p in product(hs, ts)]} for pid, (hs, ts) in SCHEMA_HT.items()}
+
+
+def write_schema_mapping():
+    output = os.path.join(ROOT, "result", "revision", "schema_signature_mapping.csv")
+    os.makedirs(os.path.dirname(output), exist_ok=True)
+    with open(output, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=[
+            "pid", "relation", "allowed_head_types", "allowed_tail_types",
+            "derivation", "property_source", "accessed",
+        ])
+        writer.writeheader()
+        for pid, (heads, tails) in sorted(SCHEMA_HT.items()):
+            writer.writerow({
+                "pid": pid,
+                "relation": REL_NAME.get(pid, pid),
+                "allowed_head_types": "|".join(sorted(heads)),
+                "allowed_tail_types": "|".join(sorted(tails)),
+                "derivation": "manual interpretation of Wikidata property meaning",
+                "property_source": f"https://www.wikidata.org/wiki/Property:{pid}",
+                "accessed": "2026-09-24",
+            })
+    return output
 
 
 def load(m, i):
@@ -74,9 +99,11 @@ def run(sigs):
 
 sc, ss, sf, st = run(SCHEMA)
 ec, es, ef, et_ = run(EMP)
+mapping_path = write_schema_mapping()
 print("================  SCHEMA-ONLY (zero-corpus) vs EMPIRICAL SIGNATURES  ================")
 print(f"[schema-only (independent)]  checkable={sc}  sound={ss}  soundness={100*ss/sc:.1f}%  firing={100*sf/st:.0f}%")
 print(f"[empirical (same corpus)]    checkable={ec}  sound={es}  soundness={100*es/ec:.1f}%  firing={100*ef/et_:.0f}%")
 print("=============================================================================")
-print("Schema signatures are hand-built from Wikidata semantics with no Re-DocRED statistics.")
+print("Schema signatures are manually specified from Wikidata property meanings with no Re-DocRED statistics.")
+print(f"Schema mapping: {os.path.relpath(mapping_path, ROOT)}")
 print("If their soundness stays high, soundness is not an artifact of same-corpus construction.")

@@ -1,0 +1,19 @@
+pid,relation,allowed_head_types,allowed_tail_types,derivation,property_source,accessed
+P1001,applies to jurisdiction,LOC|MISC|ORG,LOC|ORG,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P1001,2026-09-24
+P131,located in the administrative territorial entity,LOC|MISC|ORG|PER,LOC,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P131,2026-09-24
+P1344,participant in,ORG|PER,MISC|ORG,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P1344,2026-09-24
+P150,contains administrative territorial entity,LOC,LOC,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P150,2026-09-24
+P161,cast member,MISC,PER,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P161,2026-09-24
+P17,country,LOC|MISC|ORG|PER,LOC,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P17,2026-09-24
+P175,performer,MISC,ORG|PER,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P175,2026-09-24
+P264,record label,MISC|ORG|PER,ORG,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P264,2026-09-24
+P27,country of citizenship,PER,LOC,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P27,2026-09-24
+P361,part of,LOC|MISC|ORG|PER,LOC|MISC|ORG,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P361,2026-09-24
+P463,member of,ORG|PER,ORG,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P463,2026-09-24
+P495,country of origin,MISC|ORG|PER,LOC,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P495,2026-09-24
+P527,has part,LOC|MISC|ORG,LOC|MISC|ORG|PER,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P527,2026-09-24
+P569,date of birth,PER,TIME,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P569,2026-09-24
+P571,inception (date founded/created),LOC|MISC|ORG,TIME,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P571,2026-09-24
+P577,publication date,MISC|ORG,TIME,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P577,2026-09-24
+P710,participant,MISC|ORG,ORG|PER,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P710,2026-09-24
+P800,notable work,ORG|PER,MISC|ORG,manual interpretation of Wikidata property meaning,https://www.wikidata.org/wiki/Property:P800,2026-09-24

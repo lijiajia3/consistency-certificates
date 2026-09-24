@@ -10,4 +10,12 @@ result/reproduction/
 # (main.tex, main.pdf, author photos, cover letter, LaTeX sources and build files).
 paper/
 
+# Local submission, author-adjudication, and QA artifacts
+/revision/
+/output/
+/tmp/
+/docs/
+/IEEE_Access_Cover_Letter.pdf
+/code/make_manual_gold_id_sheet.py
+
 # Figure-drawing and paper-building scripts are now part of code/ and released.

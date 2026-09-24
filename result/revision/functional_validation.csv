@@ -1,0 +1,15 @@
+model,relation,validated,disagreed,checkable,uncheckable,validation_rate
+Qwen/Qwen2.5-14B-Instruct,P569,11,0,11,0,1.000000
+Qwen/Qwen2.5-14B-Instruct,P571,16,0,16,4,1.000000
+Qwen/Qwen2.5-14B-Instruct,P577,16,4,20,5,0.800000
+Qwen/Qwen2.5-32B-Instruct,P569,71,0,71,0,1.000000
+Qwen/Qwen2.5-32B-Instruct,P571,11,0,11,0,1.000000
+Qwen/Qwen2.5-32B-Instruct,P577,37,7,44,1,0.840909
+Qwen/Qwen2.5-72B-Instruct,P569,65,3,68,3,0.955882
+Qwen/Qwen2.5-72B-Instruct,P577,155,12,167,12,0.928144
+deepseek-ai/DeepSeek-V3,P569,2,0,2,0,1.000000
+deepseek-ai/DeepSeek-V3,P577,31,8,39,2,0.794872
+ALL,P569,149,3,152,3,0.980263
+ALL,P571,27,0,27,4,1.000000
+ALL,P577,239,31,270,20,0.885185
+ALL,ALL,415,34,449,27,0.924276

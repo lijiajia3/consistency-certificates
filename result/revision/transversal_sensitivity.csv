@@ -1,0 +1,6 @@
+model,document_model_pairs,packing_total,transversal_total,pairs_tightened,maximum_increment
+Qwen/Qwen2.5-14B-Instruct,297,273,273,0,0
+Qwen/Qwen2.5-32B-Instruct,297,247,247,0,0
+Qwen/Qwen2.5-72B-Instruct,297,346,346,0,0
+deepseek-ai/DeepSeek-V3,297,297,297,0,0
+ALL,1188,1163,1163,0,0

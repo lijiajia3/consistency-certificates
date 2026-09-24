@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from common import find_violations, disjoint_lower_bound, validate_against_gold, gold_error_records, TYPES, norm, NAME2PID, ROOT
+from analyze_resample import analyze_model as analyze_recurrence
 
 plt.rcParams.update({"font.size": 11, "figure.dpi": 150, "savefig.bbox": "tight",
                      "axes.spines.top": False, "axes.spines.right": False})
@@ -64,40 +65,20 @@ ax.legend(loc="center right", frameon=False, fontsize=9)
 plt.savefig(os.path.join(FIG, "fig2_gradient.pdf")); plt.savefig(os.path.join(FIG, "fig2_gradient.png")); plt.close()
 print("fig2 ok", [(round(r['valid'],2), round(r['fired'],2), round(r['sound'],3)) for r in rows])
 
-# Fig 3: E5 self-consistency distribution
+# Fig 3: E5 self-consistency distribution under the unique visible-error unit.
 MODEL = "Qwen/Qwen2.5-32B-Instruct"; K = 5
-
-def load_k(i, k):
-    p = os.path.join(ROOT, "result", "resample", safe(MODEL), f"{i:04d}_{k}.json")
-    return json.load(open(p)) if os.path.exists(p) else None
-
-sc = []
-for i in range(50):
-    p = os.path.join(ROOT, "result", "extractions", safe(MODEL), f"{i:04d}.json")
-    if not os.path.exists(p):
-        continue
-    t0 = json.load(open(p))
-    decs = [d for d in [load_k(i, k) for k in range(K)] if d]
-    if len(decs) < K:
-        continue
-    relsets = [set((norm(r.get("head")), NAME2PID.get(r.get("relation")), norm(r.get("tail")))
-                   for r in d.get("relations", []) if isinstance(r, dict) and NAME2PID.get(r.get("relation"))) for d in decs]
-    vs, et = find_violations(t0, SIGS, "empirical")
-    vs, _ = validate_against_gold(vs, et, DOCS[i])
-    for v in vs:
-        if v["sound"]:
-            sc.append(sum(1 for rs in relsets if (v["h"], v["pid"], v["t"]) in rs))
-counts = [sc.count(f) for f in range(K + 1)]
+sc_summary, _ = analyze_recurrence(MODEL, 50, K)
+counts = [sc_summary[f"recurrence_{f}"] for f in range(K + 1)]
 fig, ax = plt.subplots(figsize=(6.4, 3.4))
 colors = ["#BBB", "#BBB", "#BBB", "#C44", "#C44", "#C44"]
 ax.bar(range(K + 1), counts, color=colors)
-ax.set_xlabel(f"Self-consistency of a certified error\n(times it recurs across K={K} stochastic decodes)")
-ax.set_ylabel("# certified errors")
-hi = sum(counts[3:])
-ax.set_title(f"{hi}/{len(sc)}={hi/len(sc):.0%} of certified errors are self-consistent (>=3/5)\n"
-             f"-> resampling rates them reliable and misses them (red)")
+ax.set_xlabel(f"Recurrence of a visible error item\n(times it recurs across K={K} stochastic decodes)")
+ax.set_ylabel("# visible error items")
+hi = sc_summary["stable_visible_errors"]; total = sc_summary["certificate_visible_errors"]
+ax.set_title(f"{hi}/{total}={hi/total:.0%} of visible errors are stable (>=3/5)\n"
+             f"-> a recurrence alarm misses them (red)")
 plt.savefig(os.path.join(FIG, "fig3_selfconsistency.pdf")); plt.savefig(os.path.join(FIG, "fig3_selfconsistency.png")); plt.close()
-print("fig3 ok, dist", counts, "hi%", round(hi/len(sc),2))
+print("fig3 ok, dist", counts, "hi%", round(hi/total,2))
 
 # Fig 4: triage scatter
 def true_err(ext, d):

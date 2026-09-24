@@ -10,6 +10,7 @@ from certificate import (  # noqa: E402
     greedy_disjoint_lower_bound,
     hypergraph_stats,
     maximum_disjoint_lower_bound,
+    minimum_hitting_set_lower_bound,
 )
 
 
@@ -33,6 +34,13 @@ class HypergraphCertificateTests(unittest.TestCase):
     def test_duplicates_and_empty_hyperedges_do_not_change_bound(self):
         edges = [{"a", "b"}, {"a", "b"}, set(), {"c", "d"}]
         self.assertEqual(maximum_disjoint_lower_bound(edges), 2)
+
+    def test_exact_transversal_tightens_triangle_but_not_star(self):
+        triangle = [{"a", "b"}, {"b", "c"}, {"a", "c"}]
+        star = [{"a", "b"}, {"a", "c"}, {"a", "d"}]
+        self.assertEqual(maximum_disjoint_lower_bound(triangle), 1)
+        self.assertEqual(minimum_hitting_set_lower_bound(triangle), 2)
+        self.assertEqual(minimum_hitting_set_lower_bound(star), 1)
 
     def test_hypergraph_statistics_describe_overlap_structure(self):
         edges = [{"a", "b", "c"}, {"c", "d"}, {"x", "y"}]

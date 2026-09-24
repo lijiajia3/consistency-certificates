@@ -1,0 +1,5 @@
+family,relation,clashes,documents_with_clashes,raw_increment_over_empirical,gold_checkable,validated,disagreed,uncheckable,certified_gain
+candidate_functional,P569,155,86,97,152,149,3,3,0
+candidate_functional,P571,31,13,13,27,27,0,4,0
+candidate_functional,P577,290,81,95,270,239,31,20,0
+candidate_functional,ALL,476,not_additive,205,449,415,34,27,0

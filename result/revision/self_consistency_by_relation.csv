@@ -1,61 +1,64 @@
-model,pid,relation,certified_errors,stable_errors,stable_fraction,recurrence_0,recurrence_1,recurrence_2,recurrence_3,recurrence_4,recurrence_5
-Qwen/Qwen2.5-14B-Instruct,P131,located in the administrative territorial entity,1,1,1.0,0,0,0,1,0,0
-Qwen/Qwen2.5-14B-Instruct,P1344,participant in,62,8,0.12903225806451613,36,13,5,6,1,1
-Qwen/Qwen2.5-14B-Instruct,P150,contains administrative territorial entity,24,2,0.08333333333333333,9,5,8,2,0,0
-Qwen/Qwen2.5-14B-Instruct,P161,cast member,1,0,0.0,1,0,0,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P27,country of citizenship,3,0,0.0,1,2,0,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P361,part of,4,0,0.0,2,0,2,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P463,member of,1,1,1.0,0,0,0,0,1,0
-Qwen/Qwen2.5-14B-Instruct,P495,country of origin,7,0,0.0,5,0,2,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P527,has part,17,0,0.0,11,4,2,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P577,publication date,1,0,0.0,1,0,0,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P710,participant,7,0,0.0,6,1,0,0,0,0
-Qwen/Qwen2.5-14B-Instruct,P800,notable work,16,8,0.5,1,7,0,2,4,2
-Qwen/Qwen2.5-32B-Instruct,P1001,applies to jurisdiction,4,0,0.0,3,1,0,0,0,0
-Qwen/Qwen2.5-32B-Instruct,P131,located in the administrative territorial entity,7,2,0.2857142857142857,1,1,3,2,0,0
-Qwen/Qwen2.5-32B-Instruct,P1344,participant in,37,6,0.16216216216216217,8,17,6,3,3,0
-Qwen/Qwen2.5-32B-Instruct,P150,contains administrative territorial entity,1,0,0.0,1,0,0,0,0,0
-Qwen/Qwen2.5-32B-Instruct,P175,performer,7,4,0.5714285714285714,1,1,1,1,3,0
-Qwen/Qwen2.5-32B-Instruct,P264,record label,2,2,1.0,0,0,0,2,0,0
-Qwen/Qwen2.5-32B-Instruct,P27,country of citizenship,2,0,0.0,2,0,0,0,0,0
-Qwen/Qwen2.5-32B-Instruct,P463,member of,8,1,0.125,5,2,0,1,0,0
-Qwen/Qwen2.5-32B-Instruct,P495,country of origin,9,3,0.3333333333333333,3,2,1,0,2,1
-Qwen/Qwen2.5-32B-Instruct,P571,inception (date founded/created),5,0,0.0,0,5,0,0,0,0
-Qwen/Qwen2.5-32B-Instruct,P710,participant,7,0,0.0,3,4,0,0,0,0
-Qwen/Qwen2.5-32B-Instruct,P800,notable work,6,3,0.5,2,1,0,1,1,1
-Qwen/Qwen2.5-72B-Instruct,P131,located in the administrative territorial entity,1,0,0.0,0,1,0,0,0,0
-Qwen/Qwen2.5-72B-Instruct,P1344,participant in,42,11,0.2619047619047619,15,13,3,9,2,0
-Qwen/Qwen2.5-72B-Instruct,P161,cast member,11,4,0.36363636363636365,3,0,4,1,3,0
-Qwen/Qwen2.5-72B-Instruct,P17,country,1,0,0.0,1,0,0,0,0,0
-Qwen/Qwen2.5-72B-Instruct,P175,performer,8,7,0.875,0,1,0,4,3,0
-Qwen/Qwen2.5-72B-Instruct,P463,member of,1,0,0.0,0,0,1,0,0,0
-Qwen/Qwen2.5-72B-Instruct,P495,country of origin,9,0,0.0,4,1,4,0,0,0
-Qwen/Qwen2.5-72B-Instruct,P527,has part,26,11,0.4230769230769231,5,7,3,10,1,0
-Qwen/Qwen2.5-72B-Instruct,P569,date of birth,2,0,0.0,2,0,0,0,0,0
-Qwen/Qwen2.5-72B-Instruct,P577,publication date,1,0,0.0,1,0,0,0,0,0
-Qwen/Qwen2.5-72B-Instruct,P710,participant,19,1,0.05263157894736842,8,10,0,1,0,0
-Qwen/Qwen2.5-72B-Instruct,P800,notable work,18,15,0.8333333333333334,1,0,2,0,6,9
-deepseek-ai/DeepSeek-V3,P1001,applies to jurisdiction,1,0,0.0,0,1,0,0,0,0
-deepseek-ai/DeepSeek-V3,P131,located in the administrative territorial entity,4,1,0.25,3,0,0,1,0,0
-deepseek-ai/DeepSeek-V3,P1344,participant in,43,17,0.3953488372093023,17,3,6,4,11,2
-deepseek-ai/DeepSeek-V3,P150,contains administrative territorial entity,5,4,0.8,0,1,0,1,3,0
-deepseek-ai/DeepSeek-V3,P175,performer,19,10,0.5263157894736842,2,6,1,2,6,2
-deepseek-ai/DeepSeek-V3,P361,part of,2,0,0.0,1,1,0,0,0,0
-deepseek-ai/DeepSeek-V3,P463,member of,2,2,1.0,0,0,0,0,2,0
-deepseek-ai/DeepSeek-V3,P495,country of origin,13,3,0.23076923076923078,3,1,6,1,0,2
-deepseek-ai/DeepSeek-V3,P527,has part,11,5,0.45454545454545453,3,1,2,2,0,3
-deepseek-ai/DeepSeek-V3,P577,publication date,1,0,0.0,1,0,0,0,0,0
-deepseek-ai/DeepSeek-V3,P710,participant,27,7,0.25925925925925924,11,4,5,1,6,0
-deepseek-ai/DeepSeek-V3,P800,notable work,10,6,0.6,1,2,1,0,2,4
-THUDM/GLM-4-32B-0414,P1001,applies to jurisdiction,4,1,0.25,0,3,0,1,0,0
-THUDM/GLM-4-32B-0414,P1344,participant in,81,16,0.19753086419753085,28,15,22,11,2,3
-THUDM/GLM-4-32B-0414,P150,contains administrative territorial entity,2,0,0.0,1,1,0,0,0,0
-THUDM/GLM-4-32B-0414,P161,cast member,8,0,0.0,7,0,1,0,0,0
-THUDM/GLM-4-32B-0414,P175,performer,4,3,0.75,0,1,0,0,3,0
-THUDM/GLM-4-32B-0414,P361,part of,2,0,0.0,2,0,0,0,0,0
-THUDM/GLM-4-32B-0414,P463,member of,5,1,0.2,4,0,0,1,0,0
-THUDM/GLM-4-32B-0414,P495,country of origin,17,6,0.35294117647058826,5,3,3,1,3,2
-THUDM/GLM-4-32B-0414,P569,date of birth,3,0,0.0,2,1,0,0,0,0
-THUDM/GLM-4-32B-0414,P577,publication date,6,1,0.16666666666666666,3,2,0,0,1,0
-THUDM/GLM-4-32B-0414,P710,participant,48,2,0.041666666666666664,24,16,6,1,0,1
-THUDM/GLM-4-32B-0414,P800,notable work,21,9,0.42857142857142855,4,2,6,2,1,6
+model,error_category,pid,relation,certificate_visible_errors,stable_errors,stable_fraction,recurrence_0,recurrence_1,recurrence_2,recurrence_3,recurrence_4,recurrence_5
+Qwen/Qwen2.5-14B-Instruct,entity_type,ALL_ENTITY_TYPES,entity type assignment,23,15,0.6521739130434783,1,0,7,1,4,10
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P131,located in the administrative territorial entity,1,1,1.0,0,0,0,1,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P1344,participant in,55,6,0.10909090909090909,35,9,5,5,0,1
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P150,contains administrative territorial entity,24,2,0.08333333333333333,9,5,8,2,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P161,cast member,1,0,0.0,1,0,0,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P27,country of citizenship,3,0,0.0,1,2,0,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P361,part of,4,0,0.0,2,0,2,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P495,country of origin,7,0,0.0,5,0,2,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P527,has part,17,0,0.0,11,4,2,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P577,publication date,1,0,0.0,1,0,0,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P710,participant,7,0,0.0,6,1,0,0,0,0
+Qwen/Qwen2.5-14B-Instruct,relation_spurious,P800,notable work,15,7,0.4666666666666667,1,7,0,2,3,2
+Qwen/Qwen2.5-32B-Instruct,entity_type,ALL_ENTITY_TYPES,entity type assignment,10,8,0.8,0,1,1,0,3,5
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P1001,applies to jurisdiction,4,0,0.0,3,1,0,0,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P131,located in the administrative territorial entity,7,2,0.2857142857142857,1,1,3,2,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P1344,participant in,37,6,0.16216216216216217,8,17,6,3,3,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P150,contains administrative territorial entity,1,0,0.0,1,0,0,0,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P175,performer,7,4,0.5714285714285714,1,1,1,1,3,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P264,record label,2,2,1.0,0,0,0,2,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P27,country of citizenship,2,0,0.0,2,0,0,0,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P463,member of,7,0,0.0,5,2,0,0,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P495,country of origin,7,3,0.42857142857142855,2,1,1,0,2,1
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P571,inception (date founded/created),5,0,0.0,0,5,0,0,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P710,participant,7,0,0.0,3,4,0,0,0,0
+Qwen/Qwen2.5-32B-Instruct,relation_spurious,P800,notable work,6,3,0.5,2,1,0,1,1,1
+Qwen/Qwen2.5-72B-Instruct,entity_type,ALL_ENTITY_TYPES,entity type assignment,30,25,0.8333333333333334,1,2,2,5,8,12
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P131,located in the administrative territorial entity,1,0,0.0,0,1,0,0,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P1344,participant in,42,11,0.2619047619047619,15,13,3,9,2,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P161,cast member,11,4,0.36363636363636365,3,0,4,1,3,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P17,country,1,0,0.0,1,0,0,0,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P175,performer,8,7,0.875,0,1,0,4,3,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P463,member of,1,0,0.0,0,0,1,0,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P495,country of origin,9,0,0.0,4,1,4,0,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P527,has part,26,11,0.4230769230769231,5,7,3,10,1,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P569,date of birth,2,0,0.0,2,0,0,0,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P577,publication date,1,0,0.0,1,0,0,0,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P710,participant,18,1,0.05555555555555555,8,9,0,1,0,0
+Qwen/Qwen2.5-72B-Instruct,relation_spurious,P800,notable work,18,15,0.8333333333333334,1,0,2,0,6,9
+deepseek-ai/DeepSeek-V3,entity_type,ALL_ENTITY_TYPES,entity type assignment,32,28,0.875,0,3,1,5,8,15
+deepseek-ai/DeepSeek-V3,relation_spurious,P131,located in the administrative territorial entity,1,1,1.0,0,0,0,1,0,0
+deepseek-ai/DeepSeek-V3,relation_spurious,P1344,participant in,37,15,0.40540540540540543,17,3,2,4,9,2
+deepseek-ai/DeepSeek-V3,relation_spurious,P150,contains administrative territorial entity,4,3,0.75,0,1,0,0,3,0
+deepseek-ai/DeepSeek-V3,relation_spurious,P175,performer,19,10,0.5263157894736842,2,6,1,2,6,2
+deepseek-ai/DeepSeek-V3,relation_spurious,P361,part of,2,0,0.0,1,1,0,0,0,0
+deepseek-ai/DeepSeek-V3,relation_spurious,P463,member of,2,2,1.0,0,0,0,0,2,0
+deepseek-ai/DeepSeek-V3,relation_spurious,P495,country of origin,12,3,0.25,3,1,5,1,0,2
+deepseek-ai/DeepSeek-V3,relation_spurious,P527,has part,11,5,0.45454545454545453,3,1,2,2,0,3
+deepseek-ai/DeepSeek-V3,relation_spurious,P577,publication date,1,0,0.0,1,0,0,0,0,0
+deepseek-ai/DeepSeek-V3,relation_spurious,P710,participant,27,7,0.25925925925925924,11,4,5,1,6,0
+deepseek-ai/DeepSeek-V3,relation_spurious,P800,notable work,10,6,0.6,1,2,1,0,2,4
+THUDM/GLM-4-32B-0414,entity_type,ALL_ENTITY_TYPES,entity type assignment,28,18,0.6428571428571429,1,5,4,8,3,7
+THUDM/GLM-4-32B-0414,relation_spurious,P1001,applies to jurisdiction,4,1,0.25,0,3,0,1,0,0
+THUDM/GLM-4-32B-0414,relation_spurious,P1344,participant in,80,15,0.1875,28,15,22,11,1,3
+THUDM/GLM-4-32B-0414,relation_spurious,P150,contains administrative territorial entity,2,0,0.0,1,1,0,0,0,0
+THUDM/GLM-4-32B-0414,relation_spurious,P161,cast member,8,0,0.0,7,0,1,0,0,0
+THUDM/GLM-4-32B-0414,relation_spurious,P175,performer,4,3,0.75,0,1,0,0,3,0
+THUDM/GLM-4-32B-0414,relation_spurious,P361,part of,2,0,0.0,2,0,0,0,0,0
+THUDM/GLM-4-32B-0414,relation_spurious,P463,member of,4,0,0.0,4,0,0,0,0,0
+THUDM/GLM-4-32B-0414,relation_spurious,P495,country of origin,16,5,0.3125,5,3,3,0,3,2
+THUDM/GLM-4-32B-0414,relation_spurious,P569,date of birth,3,0,0.0,2,1,0,0,0,0
+THUDM/GLM-4-32B-0414,relation_spurious,P577,publication date,6,1,0.16666666666666666,3,2,0,0,1,0
+THUDM/GLM-4-32B-0414,relation_spurious,P710,participant,45,2,0.044444444444444446,21,16,6,1,0,1
+THUDM/GLM-4-32B-0414,relation_spurious,P800,notable work,21,9,0.42857142857142855,4,2,6,2,1,6

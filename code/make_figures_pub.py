@@ -10,6 +10,7 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 from common import (find_violations, find_functional_violations, disjoint_lower_bound,
                     validate_against_gold, gold_error_records, TYPES, norm, NAME2PID, REL_NAME,
                     fuzzy_gtype, ROOT)
+from analyze_resample import analyze_model as analyze_recurrence
 
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Arial", "DejaVu Sans", "Liberation Sans"],
@@ -104,7 +105,7 @@ def collect():
             checkable_bound = disjoint_lower_bound([v["he"] for v in chk])
             # Per-relation concentration is a gold-free descriptive count, so it
             # includes every empirical signature violation, not only the subset
-            # whose endpoints align to gold for the soundness evaluation.
+            # whose endpoints align to gold for retrospective validation.
             R["per_pid"].update(v["pid"] for v in vs)
             ti = true_items(ext, DOCS[i]); inv = set()
             for v in vs:
@@ -296,7 +297,7 @@ fr = [p(D[m]["fire"], D[m]["valid"]) * 100 if D[m]["valid"] else 0 for m in MODE
 sd = [p(D[m]["sound"], D[m]["viol"]) * 100 if D[m]["viol"] else np.nan for m in MODELS]
 ax.bar(x - w, vj, w, label="Valid-JSON rate", color=C["valid"], edgecolor="#9a9da3", lw=0.5)
 ax.bar(x, fr, w, label="Firing rate", color=C["fire"])
-ax.bar(x + w, [0 if np.isnan(s) else s for s in sd], w, label="Soundness", color=C["sound"])
+ax.bar(x + w, [0 if np.isnan(s) else s for s in sd], w, label="Gold validation", color=C["sound"])
 for i, s in enumerate(sd):
     if not np.isnan(s):
         ax.text(i + w, s + 1.6, "100%", ha="center", fontsize=7, color="#227a3f", fontweight="bold")
@@ -318,7 +319,7 @@ for i, m in enumerate(VALID):
     ax.text(tot + max(sig) * 0.02, i, f"{tot} checked · 0 FP", va="center", fontsize=8, color="#227a3f", fontweight="bold")
 ax.set_yticks(y); ax.set_yticklabels(VLAB); ax.set_xlabel("Checkable violations (gold-free)")
 ax.set_xlim(0, max(s + d for s, d in zip(sig, dfv)) * 1.32)
-ax.set_title("(b)  Every checkable violation is a real error (soundness 100%)", loc="left")
+ax.set_title("(b)  Every checkable violation is gold-validated (100%)", loc="left")
 ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=2, fontsize=8)
 save(fig, "F3_soundness")
 
@@ -374,37 +375,26 @@ ax.set_title("Detectable class: certified floor vs invisible remainder", loc="le
 ax.legend(fontsize=8, loc="upper right")
 save(fig, "F6_detectable")
 
-# E5: resampling self-consistency
+# E5: resampling self-consistency, using the same unique-item definition as Table III.
 RSM = "Qwen/Qwen2.5-32B-Instruct"; K = 5
-loadk = lambda i, k: (json.load(open(os.path.join(ROOT, "result", "resample", safe(RSM), f"{i:04d}_{k}.json"))) if os.path.exists(os.path.join(ROOT, "result", "resample", safe(RSM), f"{i:04d}_{k}.json")) else None)
-sc = []
-for i in range(50):
-    t0 = load(RSM, i)
-    if not t0 or t0.get("_error"):
-        continue
-    decs = [d for d in [loadk(i, k) for k in range(K)] if d]
-    if len(decs) < K:
-        continue
-    rs = [set((norm(r.get("head")), NAME2PID.get(r.get("relation")), norm(r.get("tail"))) for r in d.get("relations", []) if isinstance(r, dict) and NAME2PID.get(r.get("relation"))) for d in decs]
-    vs, et = find_violations(t0, SIGS, "empirical"); vs, _ = validate_against_gold(vs, et, DOCS[i])
-    for v in vs:
-        if v["sound"]:
-            sc.append(sum(1 for s in rs if (v["h"], v["pid"], v["t"]) in s))
-if sc:
-    cnt = [sc.count(f) for f in range(K + 1)]; hi = sum(cnt[3:]); tot = len(sc)
+sc_summary, _ = analyze_recurrence(RSM, 50, K)
+cnt = [sc_summary[f"recurrence_{f}"] for f in range(K + 1)]
+hi = sc_summary["stable_visible_errors"]
+tot = sc_summary["certificate_visible_errors"]
+if tot:
     fig, ax = plt.subplots(figsize=(5.2, 3.2))
     bars = ax.bar(range(K + 1), cnt, color=[C["valid"]] * 3 + [C["error"]] * 3, edgecolor="white", lw=0.6)
     ax.axvspan(2.5, 5.5, color=C["red_s"], alpha=0.18)
-    ax.annotate(f"self-consistent\n{hi}/{tot} = {hi/tot:.0%}\n(resampling misses)", (4, max(cnt) * 0.7),
+    ax.annotate(f"stable\n{hi}/{tot} = {hi/tot:.0%}\n(recurrence rule misses)", (4, max(cnt) * 0.7),
                 ha="center", fontsize=8, color=C["error"], fontweight="bold")
-    ax.set_xlabel(f"Recurrence of a certified error across K={K} decodes"); ax.set_ylabel("# certified errors")
-    ax.set_title("Certified errors invisible to resampling", loc="left")
+    ax.set_xlabel(f"Recurrence of a visible error item across K={K} decodes"); ax.set_ylabel("# visible error items")
+    ax.set_title("Stable errors missed by a recurrence alarm", loc="left")
     save(fig, "F7_selfconsistency")
     fig, ax = plt.subplots(figsize=(4.0, 3.2))
     rc = 100 * (tot - hi) / tot
     b = ax.bar([0, 1], [100, rc], color=[C["sound"], C["fire"]], width=0.5)
     ax.set_xticks([0, 1]); ax.set_xticklabels(["Certificate\n(1 decode)", f"Resampling\n(K={K})"])
-    ax.set_ylabel("% deployed certified errors detected"); ax.set_ylim(0, 112)
+    ax.set_ylabel("% certificate-visible errors detected"); ax.set_ylim(0, 112)
     ax.text(0, 101.5, "100%", ha="center", fontsize=9, color="#227a3f", fontweight="bold")
     ax.text(1, rc + 1.5, f"{rc:.0f}%", ha="center", fontsize=9, color=C["fire"], fontweight="bold")
     ax.set_title("Complementary coverage", loc="left")

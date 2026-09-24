@@ -104,6 +104,37 @@ def maximum_disjoint_lower_bound(hyperedges: Iterable[Iterable[Hashable]]) -> in
     )
 
 
+def minimum_hitting_set_lower_bound(hyperedges: Iterable[Iterable[Hashable]]) -> int:
+    """Return the exact transversal number, a tighter sound error lower bound.
+
+    Every valid conflict hyperedge contains an erroneous emitted item, so the
+    unknown error set is a hitting set.  Its cardinality is therefore at least
+    the minimum hitting-set size.  This exact routine is intended for the small
+    document-level components observed in the released experiments.
+    """
+    canonical = _canonical_hyperedges(hyperedges)
+    if not canonical:
+        return 0
+
+    # A superset is redundant: any vertex that hits its subset also hits it.
+    reduced = tuple(
+        edge for edge in canonical
+        if not any(other < edge for other in canonical)
+    )
+
+    @lru_cache(maxsize=None)
+    def solve(edges: tuple[Hyperedge, ...]) -> int:
+        if not edges:
+            return 0
+        pivot = min(edges, key=lambda edge: (len(edge), tuple(sorted(map(str, edge)))))
+        return 1 + min(
+            solve(tuple(edge for edge in edges if vertex not in edge))
+            for vertex in pivot
+        )
+
+    return solve(reduced)
+
+
 def hypergraph_stats(hyperedges: Iterable[Iterable[Hashable]]) -> dict[str, float | int]:
     """Describe conflict incidence without treating a hyperedge as pairwise conflict."""
     edges = _canonical_hyperedges(hyperedges)
@@ -120,6 +151,7 @@ def hypergraph_stats(hyperedges: Iterable[Iterable[Hashable]]) -> dict[str, floa
             "hyperedge_overlap_density": 0.0,
             "incidence_density": 0.0,
             "matching_number": 0,
+            "transversal_number": 0,
         }
 
     vertices = set().union(*edges)
@@ -154,6 +186,7 @@ def hypergraph_stats(hyperedges: Iterable[Iterable[Hashable]]) -> dict[str, floa
             _maximum_independent_set_size(component, overlaps)
             for component in components
         ),
+        "transversal_number": minimum_hitting_set_lower_bound(edges),
     }
 
 
@@ -208,6 +241,19 @@ def _test() -> bool:
             print("STRESS FAIL", trial, canonical, observed, expected)
             return False
     print("stress test (500 random hypergraphs): PASS")
+    transversal_cases = [
+        ("star", [{1, 2}, {1, 3}, {1, 4}], 1),
+        ("triangle", [{1, 2}, {2, 3}, {1, 3}], 2),
+        ("disjoint", [{1, 2, 3}, {4, 5}], 2),
+    ]
+    for name, edges, expected in transversal_cases:
+        observed = minimum_hitting_set_lower_bound(edges)
+        passed = observed == expected
+        ok &= passed
+        print(
+            f"transversal {name:10} observed={observed} expected={expected} "
+            f"{'PASS' if passed else 'FAIL'}"
+        )
     return ok
 
 
