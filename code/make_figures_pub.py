@@ -61,6 +61,12 @@ def save(fig, name):
             dpi=(600 if ext == "png" else None),
             metadata=metadata,
         )
+        if ext == "svg" and name == "F2_gradient":
+            path = f"{FIG}/{name}.{ext}"
+            with open(path, encoding="utf-8") as handle:
+                svg = handle.read()
+            with open(path, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write("\n".join(line.rstrip() for line in svg.splitlines()) + "\n")
     plt.close(fig)
 
 
@@ -87,6 +93,14 @@ def load(m, i):
         return None
 
 
+def cached_indices(m):
+    directory = os.path.join(ROOT, "result", "extractions", safe(m))
+    return [
+        index for index in range(len(DOCS))
+        if os.path.isfile(os.path.join(directory, f"{index:04d}.json"))
+    ]
+
+
 def true_items(ext, d):
     return [record["item"] for record in gold_error_records(ext, d)["errors"]]
 
@@ -109,7 +123,7 @@ def collect():
                  true=0, per_b=[], per_e=[], per_pid=Counter()) for m in MODELS}
     for m in MODELS:
         R = D[m]
-        idxs = COMMON if m in VALID else list(range(len(DOCS)))
+        idxs = COMMON if m in VALID else cached_indices(m)
         for i in idxs:
             ext = load(m, i)
             R["n"] += 1
@@ -304,16 +318,17 @@ fig, ax = plt.subplots(figsize=(7.0, 3.3)); x = np.arange(len(MODELS)); w = 0.26
 
 def _fullset_valid(m):
     ok = 0
-    for i in range(len(DOCS)):
+    indices = cached_indices(m)
+    for i in indices:
         ext = load(m, i)
         if ext is None or ext.get("_error"):
             continue
         ents = [e for e in ext.get("entities", []) if isinstance(e, dict) and e.get("type") in TYPES and e.get("name")]
         if ents or ext.get("relations"):
             ok += 1
-    return ok
+    return ok, len(indices)
 
-vj = [_fullset_valid(m) / len(DOCS) * 100 for m in MODELS]
+vj = [valid / cached * 100 if cached else 0 for valid, cached in map(_fullset_valid, MODELS)]
 fr = [p(D[m]["fire"], D[m]["valid"]) * 100 if D[m]["valid"] else 0 for m in MODELS]
 sd = [p(D[m]["sound"], D[m]["viol"]) * 100 if D[m]["viol"] else np.nan for m in MODELS]
 ax.bar(x - w, vj, w, label="Valid-JSON rate", color=C["valid"], edgecolor="#9a9da3", lw=0.5)

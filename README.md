@@ -54,7 +54,7 @@ disjoint hyperedge packing turns the resulting violations into a conditional, go
 | Detectable class | share of gold-verifiable emitted errors participating in conflicts | **24.1–25.2%** |
 | Qwen2.5-32B self-consistency | unique visible errors recurring in at least 3 of 5 decodes | **28 / 102 = 27.5%** (exact 95% CI 19.1–37.2%) |
 | Five-model self-consistency | stable visible-error range (50 documents/model, 5 decodes) | **19.6–50.6%** (14B 19.6%, 32B 27.5%, 72B 44.0%, DeepSeek 50.6%, GLM 24.2%) |
-| Weak-model cliff | Qwen2.5-7B valid structured output | **5%** |
+| Weak-model cliff | Qwen2.5-7B valid structured output | **15 / 247 cached outputs = 6.1%** |
 
 ![Valid-output rate, certificate firing rate, and gold validation across the model-capability gradient](result/figs/F2_gradient.png)
 
@@ -73,6 +73,12 @@ emitted errors.*
 Evaluation runs on **297 Re-DocRED documents** on which all four usable extractors produce valid
 structured output. DeepSeek-V3 was re-queried over the full 300-document dev split (299 valid
 outputs, one empty), so no extractor's coverage is partial in the released data.
+
+The Qwen2.5-7B release contains 247 cache entries: 15 valid outputs, 111 explicit error records,
+and 121 records without usable entities or relations. The remaining 53 planned indices have no
+cache file and are excluded from the valid-output denominator. Their status is recorded in
+`result/revision/qwen7b_output_accounting.csv`. Across the four primary models, 2,769 empirical
+violation records induce 2,755 unique conflict hyperedges after identical edges are deduplicated.
 
 Retrospective constraint-validation is **99.8%** for disjoint-document signatures, **98.5%** for a fully
 corpus-independent schema, and **100%** for 134 checkable violations on independently annotated

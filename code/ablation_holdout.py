@@ -88,10 +88,10 @@ for m in MODELS:
         bc += len(c); bs += sum(1 for v in c if v["sound"]); bf += (len(vs) > 0)
 
 print("\n================  HOLD-OUT SIGNATURE ABLATION  ================")
-print(f"[hold-out (disjoint)]  checkable={CHK}  sound={SND}  "
-      f"soundness={100*SND/CHK:.1f}%  firing-docs={FIRE}/{TOT}={100*FIRE/TOT:.0f}%")
-print(f"[in-sample (full corpus)]  checkable={bc}  sound={bs}  "
-      f"soundness={100*bs/bc:.1f}%  firing-docs={bf}")
+print(f"[hold-out (disjoint)]  checkable={CHK}  validated={SND}  "
+      f"validation={100*SND/CHK:.1f}%  firing-docs={FIRE}/{TOT}={100*FIRE/TOT:.0f}%")
+print(f"[in-sample (full corpus)]  checkable={bc}  validated={bs}  "
+      f"validation={100*bs/bc:.1f}%  firing-docs={bf}")
 print("================================================================")
-print("If hold-out soundness stays ~100%, zero false positives is not an artifact of")
+print("If the hold-out validation rate stays ~100%, zero observed false positives is not an artifact of")
 print("signature construction: the test documents' gold never shapes their own signatures.")

@@ -42,9 +42,9 @@ ANALYSIS_TASKS = (
 EXPECTED_MARKERS = {
     "theorem_tests": ("stress test (500 random hypergraphs): PASS",),
     "main_results": ("common evaluation set = 297", "combined:     2887/2887 = 100%"),
-    "holdout_signatures": ("checkable=3501  sound=3495  soundness=99.8%",),
-    "schema_only_signatures": ("checkable=3122  sound=3076  soundness=98.5%",),
-    "cross_family_control": ("soundness = 1085/1085 = 100.0%", "theorem   = 300/300 docs hold"),
+    "holdout_signatures": ("checkable=3501  validated=3495  validation=99.8%",),
+    "schema_only_signatures": ("checkable=3122  validated=3076  validation=98.5%",),
+    "cross_family_control": ("validation= 1085/1085 = 100.0%", "hyperedges= 1142", "theorem   = 300/300 docs hold"),
     "revision_analyses": ("REVISION_ANALYSIS_OK",),
     "self_consistency": ("SELF_CONSISTENCY_ANALYSIS_OK",),
     "scierc_external": ("SCIERC_ANALYSIS_OK",),

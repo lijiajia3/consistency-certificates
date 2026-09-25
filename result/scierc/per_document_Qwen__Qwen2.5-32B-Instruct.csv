@@ -1,4 +1,4 @@
-split,document_index,doc_key,violations,checkable,sound,uncheckable,bound,checkable_bound,gold_errors,theorem_checkable
+split,document_index,doc_key,violations,checkable,validated,uncheckable,bound,checkable_bound,gold_errors,theorem_checkable
 dev,0,ICCV_2003_158_abs,3,3,3,0,1,1,24,True
 dev,1,C04-1096,1,0,0,1,1,0,5,True
 dev,2,P84-1047,0,0,0,0,0,0,17,True

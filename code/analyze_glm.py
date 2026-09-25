@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""GLM-4-32B (cross-architecture control): valid-JSON / firing / soundness / theorem / detectable."""
+"""GLM-4-32B control: valid JSON / firing / validation / theorem / detectable."""
 import json, os
+from certificate import hypergraph_stats
 from common import (find_violations, disjoint_lower_bound, validate_against_gold,
                     gold_error_records, NAME2PID, norm, TYPES, ROOT)
 
@@ -43,7 +44,7 @@ for i in range(len(DOCS)):
         if isinstance(relation, dict) and NAME2PID.get(relation.get("relation"))
     })
     vs, et = find_violations(ext, SIGS, "empirical"); vs, _ = validate_against_gold(vs, et, DOCS[i])
-    hyperedge_total += len(vs)
+    hyperedge_total += hypergraph_stats([v["he"] for v in vs])["n_hyperedges"]
     b = disjoint_lower_bound([v["he"] for v in vs]); fire += (b > 0)
     bound_total += b; bound_max = max(bound_max, b)
     c = [v for v in vs if v["checkable"]]; chk += len(c); snd += sum(1 for v in c if v["sound"])
@@ -57,7 +58,7 @@ for i in range(len(DOCS)):
 print(f"GLM-4-32B-0414  files={n}")
 print(f"  validJSON = {valid}/{n} = {100*valid/n:.1f}%")
 print(f"  firing    = {fire}/{valid} = {100*fire/valid:.1f}%  (of valid)")
-print(f"  soundness = {snd}/{chk} = {100*snd/chk if chk else 0:.1f}%")
+print(f"  validation= {snd}/{chk} = {100*snd/chk if chk else 0:.1f}%")
 print(f"  theorem   = {thm_ok}/{thm_tot} docs hold")
 print(f"  detectable= {det}/{dett} = {100*det/dett if dett else 0:.1f}%")
 print(f"  relations = {relation_total}")

@@ -267,7 +267,7 @@ def fuzzy_gtype(name, gtype):
 
 
 def validate_against_gold(viols, etype, d):
-    """Per-violation soundness check using ambiguity-aware gold cluster IDs."""
+    """Retrospectively validate each violation using ambiguity-aware gold cluster IDs."""
     grel = gold_relation_ids(d)
     for v in viols:
         head = align_gold_entity(v["h"], d)

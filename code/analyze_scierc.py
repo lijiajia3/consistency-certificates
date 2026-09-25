@@ -74,7 +74,7 @@ def main() -> None:
                 "doc_key": doc.get("doc_key", ""),
                 "violations": len(audit["violations"]),
                 "checkable": audit["checkable"],
-                "sound": audit["sound"],
+                "validated": audit["sound"],
                 "uncheckable": audit["uncheckable"],
                 "bound": audit["bound"],
                 "checkable_bound": audit["checkable_bound"],
@@ -94,10 +94,10 @@ def main() -> None:
         "valid_documents": valid,
         "firing_documents": firing,
         "checkable_violations": checkable,
-        "sound_violations": sound,
+        "validated_violations": sound,
         "uncheckable_violations": uncheckable,
-        "soundness": sound / checkable if checkable else None,
-        "soundness_ci95": [low, high],
+        "validation_rate": sound / checkable if checkable else None,
+        "validation_ci95": [low, high],
         "certificate_bound": bound,
         "checkable_bound": checkable_bound,
         "gold_verifiable_errors": errors,
@@ -109,7 +109,7 @@ def main() -> None:
     )
     if rows:
         with (output_dir / f"per_document_{name}.csv").open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
             writer.writeheader()
             writer.writerows(rows)
     print("SCIERC_ANALYSIS_OK")

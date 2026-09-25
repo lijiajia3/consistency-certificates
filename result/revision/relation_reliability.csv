@@ -1,4 +1,4 @@
-setting,pid,relation,violations,checkable,sound,unsound,soundness,ci95_lower,ci95_upper
+setting,pid,relation,violations,checkable,validated,disagreed,validation_rate,ci95_lower,ci95_upper
 holdout,P1001,applies to jurisdiction,73,67,67,0,1.0,0.9464303458729032,1.0
 holdout,P131,located in the administrative territorial entity,273,263,261,2,0.9923954372623575,0.9728012142847837,0.9990777217377919
 holdout,P1344,participant in,933,905,901,4,0.9955801104972376,0.9887223006226075,0.9987944556538463

@@ -288,18 +288,18 @@
       "detectable_errors": 0,
       "detectable_fraction": 0.0,
       "documents_firing": 0,
-      "evaluated_documents": 300,
+      "evaluated_documents": 247,
       "gold_verifiable_errors": 3,
       "model": "Qwen2.5-7B",
       "relations": 4,
       "valid_documents": 15,
-      "valid_output_rate": 0.05
+      "valid_output_rate": 0.06072874493927125
     },
     {
       "certificate_bound_max": 5,
       "certificate_bound_mean_per_evaluated_document": 0.9191919191919192,
       "certificate_bound_total": 273,
-      "conflict_hyperedges": 667,
+      "conflict_hyperedges": 657,
       "detectable_errors": 722,
       "detectable_fraction": 0.2481952561017532,
       "documents_firing": 195,
@@ -329,7 +329,7 @@
       "certificate_bound_max": 5,
       "certificate_bound_mean_per_evaluated_document": 1.164983164983165,
       "certificate_bound_total": 346,
-      "conflict_hyperedges": 774,
+      "conflict_hyperedges": 773,
       "detectable_errors": 842,
       "detectable_fraction": 0.2411225658648339,
       "documents_firing": 214,
@@ -344,7 +344,7 @@
       "certificate_bound_max": 5,
       "certificate_bound_mean_per_evaluated_document": 1.0,
       "certificate_bound_total": 297,
-      "conflict_hyperedges": 755,
+      "conflict_hyperedges": 752,
       "detectable_errors": 832,
       "detectable_fraction": 0.25227410551849605,
       "documents_firing": 218,
@@ -359,7 +359,7 @@
       "certificate_bound_max": 6,
       "certificate_bound_mean_per_evaluated_document": 1.3166666666666667,
       "certificate_bound_total": 395,
-      "conflict_hyperedges": 1207,
+      "conflict_hyperedges": 1142,
       "detectable_errors": 1181,
       "detectable_fraction": 0.3197076340010828,
       "documents_firing": 234,
@@ -485,5 +485,11 @@
       "tightness_q3": 0.125
     }
   ],
+  "qwen7b_output_accounting": {
+    "absent": 53,
+    "cached_error": 111,
+    "cached_unusable": 121,
+    "valid": 15
+  },
   "schema_unsound_cases": 46
 }

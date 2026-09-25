@@ -60,7 +60,7 @@ for i, r in enumerate(rows):
         ax.text(i + w / 2, r["fired"] * 100 + 1.5, f"snd\n100%", ha="center", va="bottom", fontsize=7.5, color="#2a7")
 ax.set_xticks(x); ax.set_xticklabels(LABELS)
 ax.set_ylabel("%"); ax.set_ylim(0, 105)
-ax.set_title("Certificate across the model-capability gradient (soundness=100% throughout)")
+ax.set_title("Certificate across the model-capability gradient (gold validation=100% throughout)")
 ax.legend(loc="center right", frameon=False, fontsize=9)
 plt.savefig(os.path.join(FIG, "fig2_gradient.pdf")); plt.savefig(os.path.join(FIG, "fig2_gradient.png")); plt.close()
 print("fig2 ok", [(round(r['valid'],2), round(r['fired'],2), round(r['sound'],3)) for r in rows])

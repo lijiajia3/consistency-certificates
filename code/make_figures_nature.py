@@ -20,6 +20,7 @@ def generate(g):
     DOCS, SIGS, TYPES = g["DOCS"], g["SIGS"], g["TYPES"]
     ROOT, FIG, REL_NAME = g["ROOT"], g["FIG"], g["REL_NAME"]
     load, save, p, safe = g["load"], g["save"], g["p"], g["safe"]
+    cached_indices = g["cached_indices"]
     COMMON = g["COMMON"]
     find_violations = g["find_violations"]
     disjoint_lower_bound = g["disjoint_lower_bound"]
@@ -40,18 +41,19 @@ def generate(g):
     fig, ax = plt.subplots(figsize=(7.15, 2.35))
     x = np.arange(len(MODELS))
 
-    def fullset_valid(m):
+    def fullset_valid_rate(m):
+        indices = cached_indices(m)
         ok = 0
-        for i in range(len(DOCS)):
+        for i in indices:
             ext = load(m, i)
             if ext is None or ext.get("_error"):
                 continue
             ents = [e for e in ext.get("entities", [])
                     if isinstance(e, dict) and e.get("type") in TYPES and e.get("name")]
             ok += bool(ents or ext.get("relations"))
-        return ok
+        return ok / len(indices) * 100 if indices else np.nan
 
-    valid_rate = [fullset_valid(m) / len(DOCS) * 100 for m in MODELS]
+    valid_rate = [fullset_valid_rate(m) for m in MODELS]
     firing = [p(D[m]["fire"], D[m]["valid"]) * 100 if D[m]["valid"] else np.nan
               for m in MODELS]
     sound = [p(D[m]["sound"], D[m]["viol"]) * 100 if D[m]["viol"] else np.nan
@@ -89,13 +91,13 @@ def generate(g):
 
     def totals(setting):
         selected = [row for row in reliability if row["setting"] == setting]
-        return sum(int(row["sound"]) for row in selected), sum(int(row["checkable"]) for row in selected)
+        return sum(int(row["validated"]) for row in selected), sum(int(row["checkable"]) for row in selected)
 
     validation = [
         ("Definitional", sum(D[m]["def_sound"] for m in VALID), sum(D[m]["def_v"] for m in VALID)),
         ("Disjoint-document", *totals("holdout")),
         ("Schema-only", *totals("schema_only")),
-        ("SciERC", sum(int(row["sound"]) for row in scierc), sum(int(row["checkable"]) for row in scierc)),
+        ("SciERC", sum(int(row["validated"]) for row in scierc), sum(int(row["checkable"]) for row in scierc)),
     ]
     rates, lower, upper = [], [], []
     for _, sound_count, check_count in validation:

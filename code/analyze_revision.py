@@ -93,8 +93,16 @@ def safe(model: str) -> str:
     return model.replace("/", "__")
 
 
+def cache_path(model: str, index: int) -> Path:
+    return Path(ROOT) / "result" / "extractions" / safe(model) / f"{index:04d}.json"
+
+
+def cached_indices(model: str) -> list[int]:
+    return [index for index in range(len(DOCS)) if cache_path(model, index).is_file()]
+
+
 def load(model: str, index: int):
-    path = Path(ROOT) / "result" / "extractions" / safe(model) / f"{index:04d}.json"
+    path = cache_path(model, index)
     if not path.exists():
         return None
     try:
@@ -133,7 +141,12 @@ def write_csv(name: str, rows: list[dict]) -> None:
         path.write_text("", encoding="utf-8")
         return
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        newline = "\n" if name in {
+            "consolidated_model_table.csv",
+            "relation_reliability.csv",
+            "qwen7b_output_accounting.csv",
+        } else "\r\n"
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator=newline)
         writer.writeheader()
         writer.writerows(rows)
 
@@ -311,7 +324,12 @@ def consolidated_model_results() -> list[dict]:
     """Build one six-model descriptive table under identical certificate code."""
     output = []
     for model in CONSOLIDATED_MODELS:
-        indices = COMMON if model in MODELS else list(range(len(DOCS)))
+        if model in MODELS:
+            indices = COMMON
+        elif model == "Qwen/Qwen2.5-7B-Instruct":
+            indices = cached_indices(model)
+        else:
+            indices = list(range(len(DOCS)))
         valid_documents = relations = firing = hyperedges = bound_total = errors = detectable = 0
         bound_max = 0
         for index in indices:
@@ -327,7 +345,9 @@ def consolidated_model_results() -> list[dict]:
             audit_errors = gold_error_records(extraction, DOCS[index])["errors"]
             involved = set().union(*edges) if edges else set()
             firing += int(bound > 0)
-            hyperedges += len(edges)
+            # H is a hypergraph, not a multihypergraph: repeated relation
+            # records can induce the same edge and must be counted once.
+            hyperedges += hypergraph_stats(edges)["n_hyperedges"]
             bound_total += bound
             bound_max = max(bound_max, bound)
             errors += len(audit_errors)
@@ -348,6 +368,38 @@ def consolidated_model_results() -> list[dict]:
             "detectable_fraction": detectable / errors if errors else math.nan,
         })
     return output
+
+
+def qwen7b_output_accounting() -> list[dict]:
+    """Account for every planned 7B document without inventing missing outputs."""
+    model = "Qwen/Qwen2.5-7B-Instruct"
+    rows = []
+    for index, document in enumerate(DOCS):
+        path = cache_path(model, index)
+        if not path.is_file():
+            status = "absent"
+        else:
+            try:
+                extraction = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                status = "cached_unreadable"
+            else:
+                if valid_output(extraction):
+                    status = "valid"
+                elif extraction.get("_error"):
+                    status = "cached_error"
+                else:
+                    status = "cached_unusable"
+        rows.append({
+            "document_index": index,
+            "title": document.get("title", ""),
+            "cache_file": f"{index:04d}.json" if path.is_file() else "",
+            "cache_present": path.is_file(),
+            "output_status": status,
+            "included_in_valid_rate_denominator": path.is_file(),
+            "valid_structured_output": status == "valid",
+        })
+    return rows
 
 
 def volume_strata(rows: list[dict]) -> list[dict]:
@@ -463,9 +515,9 @@ def relation_reliability() -> tuple[list[dict], list[dict], dict]:
             "relation": REL_NAME.get(pid, pid),
             "violations": count["violations"],
             "checkable": count["checkable"],
-            "sound": count["sound"],
-            "unsound": count["unsound"],
-            "soundness": count["sound"] / count["checkable"] if count["checkable"] else "",
+            "validated": count["sound"],
+            "disagreed": count["unsound"],
+            "validation_rate": count["sound"] / count["checkable"] if count["checkable"] else "",
             "ci95_lower": lower,
             "ci95_upper": upper,
         })
@@ -648,6 +700,7 @@ def main() -> None:
     alignment_selection = alignment_selection_effect(alignments)
     budgets = review_budget(rows)
     taxonomy_table = taxonomy_rows(taxonomy)
+    qwen7b_accounting = qwen7b_output_accounting()
 
     write_csv("per_document.csv", rows)
     write_csv("per_model.csv", models)
@@ -661,6 +714,7 @@ def main() -> None:
     write_csv("alignment_selection_effect.csv", alignment_selection)
     write_csv("review_budget.csv", budgets)
     write_csv("error_taxonomy.csv", taxonomy_table)
+    write_csv("qwen7b_output_accounting.csv", qwen7b_accounting)
     (OUT / "constraint_sensitivity.json").write_text(
         json.dumps(sensitivity, indent=2, sort_keys=True), encoding="utf-8"
     )
@@ -674,7 +728,7 @@ def main() -> None:
         "common_documents": len(COMMON),
         "document_model_pairs": len(rows),
         "empirical_checkable": sum(row["checkable"] for row in empirical_relation_rows),
-        "empirical_unsound": sum(row["unsound"] for row in empirical_relation_rows),
+        "empirical_unsound": sum(row["disagreed"] for row in empirical_relation_rows),
         "legacy_uncheckable_violations": legacy_uncheckable,
         "cluster_id_uncheckable_violations": cluster_uncheckable,
         "alignment_selection_effect": alignment_selection,
@@ -682,6 +736,9 @@ def main() -> None:
         "schema_unsound_cases": schema_unsound,
         "models": models,
         "consolidated_models": consolidated,
+        "qwen7b_output_accounting": dict(Counter(
+            row["output_status"] for row in qwen7b_accounting
+        )),
         "constraint_sensitivity": sensitivity,
     }
     (OUT / "revision_summary.json").write_text(
@@ -696,7 +753,10 @@ def main() -> None:
         f"{summary['empirical_checkable']} sound after cluster-ID alignment.",
         f"- Submitted heuristic left {legacy_uncheckable} violations uncheckable; the ambiguity-aware "
         f"cluster-ID audit conservatively leaves {cluster_uncheckable} uncheckable.",
-        f"- Hold-out/schema-only unsound cases after cluster-ID alignment: {holdout_unsound}/{schema_unsound}.",
+        f"- Hold-out/schema-only disagreement cases after cluster-ID alignment: {holdout_unsound}/{schema_unsound}.",
+        "- Qwen2.5-7B cache accounting: 247 entries (15 valid, 111 explicit error records, "
+        "121 otherwise unusable) and 53 absent entries; absent entries are excluded from the "
+        "valid-output denominator.",
         "",
         "## Per-model certificate and tightness",
         "",
@@ -712,9 +772,10 @@ def main() -> None:
         )
     report.extend([
         "",
-        "The CSV files in this directory contain relation-level confidence intervals, exact unsound "
+        "The CSV files in this directory contain relation-level confidence intervals, exact disagreement "
         "cases, volume-normalized rates, review-budget comparisons, error taxonomy, and the "
-        "stratified alignment-audit sample and alignment-selection analysis.",
+        "stratified alignment-audit sample, alignment-selection analysis, and document-level "
+        "Qwen2.5-7B cache accounting.",
     ])
     (OUT / "revision_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
     print("REVISION_ANALYSIS_OK")

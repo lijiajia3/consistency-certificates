@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Reproduce the paper's main results on the declared 297-document common set.
 
-Valid-output rates use all 300 documents. Certificate metrics for the four usable
-extractors use only documents on which all four returned valid output, exactly as
-reported in the manuscript.
+Valid-output rates use the released cache entries. The Qwen2.5-7B cache contains
+247 entries; the other model caches contain all 300. Certificate metrics for the
+four usable extractors use only documents on which all four returned valid output,
+exactly as reported in the manuscript.
 """
 import json, os
 from common import (find_violations, disjoint_lower_bound, validate_against_gold,
@@ -27,6 +28,14 @@ def load(m, i):
         return json.load(open(p))
     except Exception:
         return None
+
+
+def cached_indices(m):
+    directory = os.path.join(ROOT, "result", "extractions", safe(m))
+    return [
+        index for index in range(len(DOCS))
+        if os.path.isfile(os.path.join(directory, f"{index:04d}.json"))
+    ]
 
 
 def valid_output(ext):
@@ -101,15 +110,16 @@ def main():
     summaries = {}
     for constraint in ["empirical", "definitional"]:
         print(f"\n{'='*96}\nconstraint family = {constraint}\n{'='*96}")
-        print(f"{'model':26} {'validJSON':>9} {'ents/doc':>8} {'firing':>7} {'soundness':>10} "
+        print(f"{'model':26} {'validJSON':>9} {'ents/doc':>8} {'firing':>7} {'validation':>10} "
               f"{'bound_sum':>9} {'true_err':>8} {'theorem':>7} {'detectable':>9}")
         for m in MODELS:
-            full_valid = sum(valid_output(load(m, i)) for i in range(len(DOCS)))
-            indices = COMMON if m in USABLE_MODELS else range(len(DOCS))
+            cached = cached_indices(m)
+            full_valid = sum(valid_output(load(m, i)) for i in cached)
+            indices = COMMON if m in USABLE_MODELS else cached
             r = analyze_model(m, constraint, indices)
             summaries[(constraint, m)] = r
             name = m.split("/")[-1]
-            print(f"{name:26} {pct(full_valid, len(DOCS)):>9} {r['ents']/max(r['valid'],1):>8.1f} "
+            print(f"{name:26} {pct(full_valid, len(cached)):>9} {r['ents']/max(r['valid'],1):>8.1f} "
                   f"{pct(r['fired'], r['valid']):>7} {r['sound']}/{r['chk']}={pct(r['sound'], r['chk']):>4} "
                   f"{r['bound']:>9} {r['terr']:>8} {pct(r['thm_ok'], r['thm_n']):>7} "
                   f"{pct(r['catchable'], r['true_items']):>9}")

@@ -79,6 +79,7 @@ class SubmissionConsistencyTests(unittest.TestCase):
             "gold_id_anchor_ablation.csv",
             "transversal_sensitivity.csv",
             "consolidated_model_table.csv",
+            "qwen7b_output_accounting.csv",
             "self_consistency_by_model.csv",
             "self_consistency_by_relation.csv",
             "constraint_sensitivity.json",
@@ -122,7 +123,7 @@ class SubmissionConsistencyTests(unittest.TestCase):
         for setting in ("holdout", "schema_only"):
             rows = [row for row in relation_rows if row["setting"] == setting]
             pooled[setting] = (
-                sum(int(row["sound"]) for row in rows),
+                sum(int(row["validated"]) for row in rows),
                 sum(int(row["checkable"]) for row in rows),
             )
         self.assertEqual((3495, 3501), pooled["holdout"])
@@ -185,8 +186,42 @@ class SubmissionConsistencyTests(unittest.TestCase):
         self.assertTrue(rows)
         diagnostic_row = next((row for row in rows if "15/15" in row), None)
         self.assertIsNotNone(diagnostic_row)
-        self.assertIn("15/300", diagnostic_row)
+        self.assertIn("15/247", diagnostic_row)
         self.assertIn("0/3", diagnostic_row)
+
+    def test_unique_hyperedge_counts_and_qwen7b_cache_accounting(self):
+        base = ROOT / "result" / "revision"
+        with (base / "per_model.csv").open(newline="", encoding="utf-8") as handle:
+            primary = {row["model"]: row for row in csv.DictReader(handle)}
+        with (base / "consolidated_model_table.csv").open(newline="", encoding="utf-8") as handle:
+            consolidated = {row["model"]: row for row in csv.DictReader(handle)}
+        for model in ("Qwen2.5-14B", "Qwen2.5-32B", "Qwen2.5-72B", "DeepSeek-V3"):
+            self.assertEqual(
+                int(primary[model]["conflict_hyperedges"]),
+                int(consolidated[model]["conflict_hyperedges"]),
+            )
+        self.assertEqual(1142, int(consolidated["GLM-4-32B"]["conflict_hyperedges"]))
+
+        with (base / "qwen7b_output_accounting.csv").open(newline="", encoding="utf-8") as handle:
+            accounting = list(csv.DictReader(handle))
+        self.assertEqual(300, len(accounting))
+        status_counts = {}
+        for row in accounting:
+            status_counts[row["output_status"]] = status_counts.get(row["output_status"], 0) + 1
+        self.assertEqual({
+            "valid": 15,
+            "cached_error": 111,
+            "cached_unusable": 121,
+            "absent": 53,
+        }, status_counts)
+        self.assertEqual(247, sum(row["included_in_valid_rate_denominator"] == "True" for row in accounting))
+
+    @unittest.skipUnless((ROOT / "paper" / "main.tex").is_file(), "local manuscript not released")
+    def test_scierc_table_uses_retrospective_validation_terminology(self):
+        text = (ROOT / "paper" / "main.tex").read_text(encoding="utf-8")
+        self.assertNotIn("Sound checkable violations", text)
+        self.assertIn("Retrospectively validated & 134 (100\\%)", text)
+        self.assertIn("Uncheckable violations & 127", text)
 
     @unittest.skipUnless((ROOT / "paper" / "main.tex").is_file(), "local manuscript not released")
     def test_self_consistency_uses_unique_visible_error_items(self):
