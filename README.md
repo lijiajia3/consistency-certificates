@@ -208,7 +208,6 @@ consistency_certificates/
 │   ├── analyze_glm.py      # GLM-4-32B cross-architecture metrics
 │   ├── ablation_holdout.py # two-fold hold-out signature ablation (99.8%)
 │   ├── ablation_schema.py  # schema-only (zero-corpus) signature ablation (98.5%)
-│   ├── pilot.py            # minimal go/no-go pilot (15 docs, needs API key)
 │   ├── make_figures.py     # legacy figures (gradient, self-consistency, triage)
 │   ├── make_figure1_svg.py # editable IEEE-style concept schematic (F1)
 │   ├── make_figures_nature.py # Nature-style statistical figures (F2-F11)
