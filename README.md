@@ -47,6 +47,8 @@ disjoint hyperedge packing turns the resulting violations into a conditional, go
 | Definitional-signature audit (4 models) | observed false positives | **0 / 340**; one-sided 95% upper bound **0.88%** |
 | Construction-aligned empirical diagnostic | observed false positives | **0 / 2547**; not treated as independent validation |
 | Cross-architecture control (GLM-4-32B) | observed false positives | **0 / 1085** over 300/300 valid documents |
+| Four primary models | exact certificate-bound total | **1,163** (273 + 247 + 346 + 297) |
+| Cross-architecture control (GLM-4-32B) | exact certificate-bound total | **395** over 300 documents |
 | Firing rate (empirical signatures) | documents with a non-zero bound | **66–73%** |
 | Detectable class | share of gold-verifiable emitted errors participating in conflicts | **24.1–25.2%** |
 | Qwen2.5-32B self-consistency | unique visible errors recurring in at least 3 of 5 decodes | **28 / 102 = 27.5%** (exact 95% CI 19.1–37.2%) |
@@ -126,7 +128,7 @@ python3 code/certificate.py
 # Main results table (construction-aligned diagnostic, firing, detectable class)
 python3 code/analyze.py
 
-# Soundness ablations (99.8% hold-out, 98.5% schema-only)
+# Retrospective validation (99.8% hold-out, 98.5% schema-only)
 python3 code/ablation_holdout.py
 python3 code/ablation_schema.py
 
@@ -173,8 +175,8 @@ alone; that mode deliberately issues no error lower bound.
 - Audit a new black-box information extraction output using empirical and definitional
   constraints, while retaining candidate functional clashes as separate exploratory warnings.
 - Return the implicated output items and a conditional document-level error lower bound from one decode.
-- Reproduce the main soundness, firing, detectable-class, hold-out, schema-only, cross-family,
-  self-consistency, and triage analyses from the released cached outputs.
+- Reproduce the main validation, firing, detectable-class, hold-out, schema-only, and cross-family
+  analyses, together with the self-consistency and triage results, from the released cached outputs.
 - Regenerate all eleven publication figures as editable SVG, print-ready PDF, and high-resolution PNG.
 - Re-run the original extraction or stochastic-resampling pipelines when a SiliconFlow API key is
   available; these online steps are optional and are not needed to reproduce the paper.
@@ -189,7 +191,7 @@ consistency_certificates/
 │   ├── certificate.py      # exact hypergraph packing + exhaustive randomized cross-check
 │   ├── reproduce_all.py    # one-command offline reproduction + per-task logs and manifest
 │   ├── run_extractions.py  # concurrent, cached black-box extraction (SiliconFlow API)
-│   ├── analyze.py          # main results table (soundness, firing, detectable class)
+│   ├── analyze.py          # main results table (validation, firing, detectable class)
 │   ├── run_resample.py     # E5: K=5 stochastic decodes at T=0.7
 │   ├── analyze_resample.py # multi-model self-consistency overlap
 │   ├── analyze_revision.py # robustness, tightness, taxonomy, and review-budget analyses
@@ -231,7 +233,7 @@ author-facing submission files are kept outside this public code-and-data reposi
 - **Constraints:** relation type signatures (empirical and definitional), functional-relation
   consistency, and a manually specified schema-only variant based on Wikidata property meanings with no corpus statistics.
   Functional constraints are reported as a separate firing-only analysis in the paper; they are not
-  pooled into the gold-audited headline soundness or bound-tightness results.
+  pooled into the gold-audited validation or bound-tightness results.
 
 ## Notes on reproducibility
 
