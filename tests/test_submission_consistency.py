@@ -19,6 +19,33 @@ def pdf_text(path: Path) -> str:
 
 
 class SubmissionConsistencyTests(unittest.TestCase):
+    def test_released_results_exclude_superseded_pilot_outputs(self):
+        legacy_paths = {
+            Path("result/RESULTS_main.txt"),
+            Path("result/run_32b.log"),
+        }
+        self.assertEqual(
+            [],
+            sorted(str(path) for path in legacy_paths if (ROOT / path).exists()),
+            "Superseded pilot outputs must not be published beside the final results.",
+        )
+
+        archive = (
+            ROOT
+            / "revision"
+            / "submission_package"
+            / "04_Supplementary_Files"
+            / "Reproducibility_Archive.zip"
+        )
+        if archive.is_file():
+            with zipfile.ZipFile(archive) as handle:
+                archived = set(handle.namelist())
+            self.assertIn("result/RESULTS.md", archived)
+            self.assertTrue(
+                {str(path) for path in legacy_paths}.isdisjoint(archived),
+                "The reproducibility archive contains a superseded pilot output.",
+            )
+
     def test_reviewer_response_has_one_block_per_comment(self):
         path = ROOT / "revision" / "response_to_reviewers.md"
         if not path.is_file():
