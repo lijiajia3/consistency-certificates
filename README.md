@@ -46,6 +46,7 @@ disjoint hyperedge packing turns the resulting violations into a conditional, go
 | Independent SciERC corpus | validation | **100%** (134 / 134; exact 95% CI 97.28–100%) |
 | Definitional-signature audit (4 models) | observed false positives | **0 / 340**; one-sided 95% upper bound **0.88%** |
 | Construction-aligned empirical diagnostic | observed false positives | **0 / 2547**; not treated as independent validation |
+| Author-verified alignment sample | manual adjudication of 67 automatic abstentions | **37 uniquely resolved (37/37 contained a gold-measured error), 29 unmatched, 1 ambiguous**; diagnostic only |
 | Cross-architecture control (GLM-4-32B) | observed false positives | **0 / 1085** over 300/300 valid documents |
 | Four primary models | exact certificate-bound total | **1,163** (273 + 247 + 346 + 297) |
 | Cross-architecture control (GLM-4-32B) | exact certificate-bound total | **395** over 300 documents |
@@ -104,6 +105,13 @@ normalized exact aliases, best containment, retention of tied candidates, and ab
 gold types conflict. Re-DocRED is identified by DOI
 [`10.18653/v1/2022.emnlp-main.580`](https://doi.org/10.18653/v1/2022.emnlp-main.580).
 SciERC is identified by DOI [`10.18653/v1/D18-1360`](https://doi.org/10.18653/v1/D18-1360).
+
+The author-verified workbook [`result/revision/gold_id_manual_audit_67.xlsx`](result/revision/gold_id_manual_audit_67.xlsx)
+records manual decisions for the stratified sample of 67 automatic alignment
+abstentions. Manual review uniquely aligned 37 rows, found no corresponding
+annotated entity in 29, and left one genuinely ambiguous. All 37 uniquely
+aligned rows contained a gold-measured error. This sample is a diagnostic and
+is not added to the automated same-corpus tally.
 
 ```bash
 # Setup
@@ -213,6 +221,7 @@ consistency_certificates/
 │   ├── extractions/        # cached model outputs, one JSON per (model, document)
 │   ├── resample/           # cached stochastic decodes for all usable primary models
 │   ├── figs/               # generated figures (.pdf, .svg, .png)
+│   ├── revision/           # reviewer analyses and author-verified 67-row audit workbook
 │   └── RESULTS.md          # results summary
 ├── README.md
 ├── requirements.txt        # tested Python dependency versions

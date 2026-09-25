@@ -2,17 +2,37 @@
 
 The 67-row stratified sample in `alignment_audit_sample.csv` was inspected
 against the corresponding Re-DocRED document text, normalized cluster aliases,
-and the resolver's candidate-cluster status. The sample deliberately
-over-represents uncheckable cases; it is a diagnostic case audit, not a
-population estimate or a replacement for adjudication of all 222 excluded rows.
+and the resolver's candidate-cluster status. Jiaxuan Li manually adjudicated
+each row and recorded the decision in `gold_id_manual_audit_67.xlsx`. The sample
+deliberately over-represents uncheckable cases; it is a diagnostic case audit,
+not a population estimate or a replacement for adjudication of all 222 excluded
+rows.
 
-## Outcome categories
+## Automatic screening categories
 
 | Row-level category | Rows | Interpretation |
 |---|---:|---|
 | Unmatched endpoint only | 41 | The emitted endpoint was a descriptive phrase, number, role, adjectival form, or malformed surface form that Re-DocRED did not annotate as a compatible entity cluster. |
 | Type-conflicting multiple match only | 24 | The same normalized alias or best containment target mapped to multiple gold clusters carrying different types; selecting one cluster would make the audit order-dependent. |
 | Both mechanisms | 2 | One endpoint was unmatched and the other had type-conflicting candidate clusters. |
+
+These are the automatic resolver's failure-mechanism labels. They are not the
+final manual outcomes.
+
+## Author adjudication outcomes
+
+| Manual outcome | Rows | Interpretation |
+|---|---:|---|
+| Unique gold-cluster assignment | 37 | Both emitted endpoints could be assigned to one gold cluster after reading the source document. |
+| No corresponding annotated entity | 29 | At least one emitted endpoint did not refer to any gold entity cluster in the document. |
+| Genuine ambiguity | 1 | The gold annotation did not support a unique cluster assignment for the emitted endpoint. |
+
+All 37 uniquely aligned rows contained at least one gold-measured error. In 36
+rows, the emitted relation was absent from the gold labels. In the remaining
+row, the relation was present but the model assigned the wrong type to the tail
+entity. This 37/37 result applies only to the manually resolvable part of the
+stratified sample and is not merged into the automated 2,547/2,547 same-corpus
+tally.
 
 Representative unmatched endpoints include `50 states`, `VFL/AFL clubs`,
 `polish invaders`, `U.S. energy policies`, `professional soccer players`, `12
@@ -21,11 +41,11 @@ volumes`, `commissioner of railroads`, and punctuation-damaged titles such as
 benchmark-unannotated spans, not aliases that can be assigned automatically
 without judgment.
 
-Representative ambiguity cases include `Washington v Texas`, `Mumford Sons`,
-`Brigden`, `Rage Against the Machine`, and `Chachalacas`. Re-DocRED contains
-more than one candidate cluster for these normalized surfaces or containment
-matches, and the candidates disagree in type. The earlier string heuristic
-silently chose a type; the revised procedure abstains.
+The automatic ambiguity group included `Washington v Texas`, `Mumford Sons`,
+`Brigden`, `Rage Against the Machine`, and `Chachalacas`. The source context and
+model entity inventory resolved these cases during manual adjudication. The one
+remaining ambiguity is `Kurdish`, which the gold annotation splits across
+incompatible cluster uses.
 
 ## Quantified selection effect
 
@@ -45,5 +65,6 @@ the gold-free lower bound do not use this alignment layer; only retrospective
 validation, taxonomy, and tightness analyses do. The checkable tally is not
 extrapolated to excluded cases. The separate strict gold-ID-anchored ablation
 checks only emitted names with one exact annotated-cluster match
-(1,961/1,961 same-corpus validations). The author-only 222-row evidence sheet
-supports any further human adjudication without changing the reported analysis.
+(1,961/1,961 same-corpus validations). The completed 67-row workbook provides
+the author-verified sample evidence. The separate 222-row worksheet remains
+available for an optional full adjudication and is not presented as completed.

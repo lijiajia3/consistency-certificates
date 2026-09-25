@@ -69,6 +69,7 @@ class SubmissionConsistencyTests(unittest.TestCase):
             "alignment_breakdown.csv",
             "alignment_audit_sample.csv",
             "alignment_case_audit.md",
+            "gold_id_manual_audit_67.xlsx",
             "alignment_selection_effect.csv",
             "review_budget.csv",
             "error_taxonomy.csv",
@@ -93,8 +94,25 @@ class SubmissionConsistencyTests(unittest.TestCase):
             "code/analyze_resample.py",
             "code/ablation_gold_ids.py",
             "code/validate_functional.py",
+            "result/revision/gold_id_manual_audit_67.xlsx",
         ):
             self.assertIn(path, archived)
+
+    def test_completed_manual_audit_is_reported_consistently(self):
+        workbook = ROOT / "result" / "revision" / "gold_id_manual_audit_67.xlsx"
+        self.assertTrue(workbook.is_file())
+        with zipfile.ZipFile(workbook) as handle:
+            core = handle.read("docProps/core.xml").decode("utf-8")
+        self.assertIn("Jiaxuan Li", core)
+
+        response = (ROOT / "revision" / "response_to_reviewers.md").read_text(encoding="utf-8")
+        audit = (ROOT / "result" / "revision" / "alignment_case_audit.md").read_text(encoding="utf-8")
+        manuscript = (ROOT / "paper" / "main.tex").read_text(encoding="utf-8")
+        for text in (response, audit, manuscript):
+            self.assertIn("37", text)
+            self.assertIn("29", text)
+            self.assertIn("one", text)
+        self.assertNotIn("audit of 67 excluded rows found\n41", response)
 
     def test_reported_validation_totals_match_machine_readable_tables(self):
         base = ROOT / "result" / "revision"
