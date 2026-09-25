@@ -108,7 +108,9 @@ SciERC is identified by DOI [`10.18653/v1/D18-1360`](https://doi.org/10.18653/v1
 
 The author-verified workbook [`result/revision/gold_id_manual_audit_67.xlsx`](result/revision/gold_id_manual_audit_67.xlsx)
 records manual decisions for the stratified sample of 67 automatic alignment
-abstentions. Manual review uniquely aligned 37 rows, found no corresponding
+abstentions. The same completed row-level audit is available as
+[`result/revision/gold_id_manual_audit_67.csv`](result/revision/gold_id_manual_audit_67.csv)
+for direct inspection. Manual review uniquely aligned 37 rows, found no corresponding
 annotated entity in 29, and left one genuinely ambiguous. All 37 uniquely
 aligned rows contained a gold-measured error. This sample is a diagnostic and
 is not added to the automated same-corpus tally.
